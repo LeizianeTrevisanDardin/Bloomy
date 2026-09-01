@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* ========================================
+   GLOBAL COLORS
+======================================== */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -24,75 +28,201 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
-@keyframes auroraMove {
+
+/* ========================================
+   AURORA SKY MOTION
+======================================== */
+/* ========================================
+   AURORA SKY WAVES
+======================================== */
+
+@keyframes auroraSkyMotion {
   0% {
-    transform: translateX(-3%) scale(1.04);
-    opacity: 0.65;
+    transform: translateX(-1.5%);
+    opacity: 0.5;
   }
 
-  50% {
-    transform: translateX(1%) scale(1.07);
-    opacity: 0.85;
+  35% {
+    transform: translateX(0.5%);
+    opacity: 0.72;
+  }
+
+  70% {
+    transform: translateX(1.5%);
+    opacity: 0.82;
   }
 
   100% {
-    transform: translateX(4%) scale(1.05);
-    opacity: 0.7;
+    transform: translateX(-1.5%);
+    opacity: 0.5;
   }
 }
 
-.aurora-effect {
-  animation: auroraMove 14s ease-in-out infinite alternate;
+.aurora-sky-motion {
+  top: -30%;
+
+  mix-blend-mode: screen;
   transform-origin: center top;
 
-  position: relative;
-  top: -38%;
+  /*
+    The SVG filter bends different areas of
+    the aurora instead of moving it as one block.
+  */
+  filter: url("#aurora-wave-filter");
 
-  /* Fade downwards */
-  -webkit-mask-image:
-    linear-gradient(
-      to bottom,
-      black 0%,
-      black 38%,
-      rgba(0, 0, 0, 0.8) 48%,
-      rgba(0, 0, 0, 0.35) 58%,
-      transparent 70%
-    ),
-    linear-gradient(
-      to right,
-      black 0%,
-      black 68%,
-      rgba(0, 0, 0, 0.8) 74%,
-      rgba(0, 0, 0, 0.35) 80%,
-      transparent 88%
-    );
+  animation: auroraSkyMotion 12s ease-in-out infinite;
 
-  -webkit-mask-composite: source-in;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 28%,
+    rgba(0, 0, 0, 0.85) 36%,
+    rgba(0, 0, 0, 0.35) 44%,
+    transparent 53%
+  );
 
-  mask-image:
-    linear-gradient(
-      to bottom,
-      black 0%,
-      black 38%,
-      rgba(0, 0, 0, 0.8) 48%,
-      rgba(0, 0, 0, 0.35) 58%,
-      transparent 70%
-    ),
-    linear-gradient(
-      to right,
-      black 0%,
-      black 68%,
-      rgba(0, 0, 0, 0.8) 74%,
-      rgba(0, 0, 0, 0.35) 80%,
-      transparent 88%
-    );
-
-  mask-composite: intersect;
+  mask-image: linear-gradient(
+    to bottom,
+    black 0%,
+    black 28%,
+    rgba(0, 0, 0, 0.85) 36%,
+    rgba(0, 0, 0, 0.35) 44%,
+    transparent 53%
+  );
 }
 
-/* ================================= */
-/* RAIN */
-/* ================================= */
+/* ========================================
+   AURORA WATER REFLECTION ANIMATIONS
+======================================== */
+
+@keyframes auroraWaterColors {
+  0% {
+    background-position:
+      0 0,
+      0% 50%;
+
+    opacity: 0.5;
+  }
+
+  50% {
+    background-position:
+      8px 12px,
+      55% 50%;
+
+    opacity: 0.82;
+  }
+
+  100% {
+    background-position:
+      14px 24px,
+      100% 50%;
+
+    opacity: 0.58;
+  }
+}
+
+@keyframes auroraWaterMovement {
+  0% {
+    transform:
+      translateX(-52%)
+      scaleX(0.96)
+      scaleY(0.98);
+  }
+
+  50% {
+    transform:
+      translateX(-48%)
+      scaleX(1.04)
+      scaleY(1.03);
+  }
+
+  100% {
+    transform:
+      translateX(-52%)
+      scaleX(0.96)
+      scaleY(0.98);
+  }
+}
+
+/* ========================================
+   AURORA REFLECTION IN THE WATER
+======================================== */
+
+.aurora-water-reflection {
+  position: absolute;
+
+  /*
+    Centers the animated reflection over
+    the bright section of the lake.
+  */
+  left: 57%;
+  top: 43%;
+  width: 14%;
+  height: 13%;
+
+  /*
+    Creates small horizontal streaks that
+    move like reflected light on water.
+  */
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 4px,
+      rgba(79, 255, 229, 0.2) 5px,
+      rgba(79, 213, 255, 0.65) 6px,
+      transparent 8px,
+      transparent 12px
+    ),
+    linear-gradient(
+      100deg,
+      transparent 0%,
+      rgba(44, 255, 220, 0.38) 18%,
+      rgba(34, 220, 255, 0.72) 36%,
+      rgba(127, 77, 255, 0.65) 54%,
+      rgba(226, 75, 255, 0.58) 70%,
+      rgba(57, 255, 193, 0.42) 84%,
+      transparent 100%
+    );
+
+  background-size:
+    100% 20px,
+    180% 100%;
+
+  mix-blend-mode: screen;
+  filter: blur(1px) saturate(1.45);
+  opacity: 0.75;
+
+  /*
+    Softens the edges so no rectangle
+    appears over the lake.
+  */
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    black 12%,
+    rgba(0, 0, 0, 0.9) 38%,
+    rgba(0, 0, 0, 0.4) 65%,
+    transparent 90%
+  );
+
+  mask-image: radial-gradient(
+    ellipse at center,
+    black 12%,
+    rgba(0, 0, 0, 0.9) 38%,
+    rgba(0, 0, 0, 0.4) 65%,
+    transparent 90%
+  );
+
+  transform-origin: center;
+
+  animation:
+    auroraWaterColors 5s ease-in-out infinite,
+    auroraWaterMovement 3.5s ease-in-out infinite;
+}
+
+/* ========================================
+   RAIN ANIMATION
+======================================== */
 
 @keyframes rainFall {
   from {
@@ -115,7 +245,7 @@ body {
 
   background-image: repeating-linear-gradient(
     105deg,
-    transparent 0px,
+    transparent 0,
     transparent 18px,
     rgba(220, 240, 255, 0.5) 19px,
     rgba(220, 240, 255, 0.5) 20px,
@@ -126,27 +256,95 @@ body {
   background-size: 45px 90px;
 }
 
-/* chuva distante */
+/* Distant rain */
+
 .rain-layer-back {
   opacity: 0.3;
-
-  animation:
-    rainFall 2.8s linear infinite;
+  animation: rainFall 2.8s linear infinite;
 }
 
-/* chuva mais próxima */
+/* Closer and more visible rain */
+
 .rain-layer-front {
   opacity: 0.5;
-
   background-size: 65px 125px;
-
-  animation:
-    rainFall 2.1s linear infinite;
+  animation: rainFall 2.1s linear infinite;
 }
 
-/* ================================= */
-/* SNOW */
-/* ================================= */
+/* ========================================
+   RAIN SPLASHES ON THE GROUND
+======================================== */
+
+@keyframes rainGroundSplash {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+
+  20% {
+    opacity: 0.9;
+  }
+
+  70% {
+    opacity: 0.45;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+.rain-ground-splash {
+  position: absolute;
+
+  display: block;
+
+  border: 1px solid rgba(225, 245, 255, 0.85);
+  border-radius: 50%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(230, 247, 255, 0.28) 0%,
+    transparent 65%
+  );
+
+  box-shadow:
+    0 0 3px rgba(220, 242, 255, 0.45),
+    inset 0 0 2px rgba(255, 255, 255, 0.3);
+
+  mix-blend-mode: screen;
+  opacity: 0;
+
+  animation-name: rainGroundSplash;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+
+/* Small splash */
+
+.rain-ground-splash-small {
+  width: 10px;
+  height: 3px;
+}
+
+/* Medium splash */
+
+.rain-ground-splash-medium {
+  width: 16px;
+  height: 5px;
+}
+
+/* Large splash */
+
+.rain-ground-splash-large {
+  width: 22px;
+  height: 6px;
+}
+
+/* ========================================
+   SNOW ANIMATIONS
+======================================== */
 
 @keyframes snowFallBack {
   0% {
@@ -202,53 +400,61 @@ body {
   background-repeat: repeat;
 }
 
-/* ❄️ neve distante — bem pequena */
+/* Small and distant snowflakes */
 
 .snow-back {
-  background-image:
-    radial-gradient(
-      circle,
-      rgba(255, 255, 255, 0.65) 0 1px,
-      transparent 1.5px
-    );
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.65) 0 1px,
+    transparent 1.5px
+  );
 
   background-size: 28px 32px;
-
   opacity: 0.45;
 
   animation: snowFallBack 12s linear infinite;
 }
 
-/* ❄️ neve média */
+/* Medium snowflakes */
 
 .snow-middle {
-  background-image:
-    radial-gradient(
-      circle,
-      rgba(255, 255, 255, 0.8) 0 1.5px,
-      transparent 2px
-    );
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.8) 0 1.5px,
+    transparent 2px
+  );
 
   background-size: 45px 48px;
-
   opacity: 0.65;
 
   animation: snowFallMiddle 9s linear infinite;
 }
 
-/* ❄️ alguns flocos próximos */
+/* Larger and closer snowflakes */
 
 .snow-front {
-  background-image:
-    radial-gradient(
-      circle,
-      rgba(255, 255, 255, 0.9) 0 2px,
-      transparent 2.5px
-    );
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0 2px,
+    transparent 2.5px
+  );
 
   background-size: 75px 72px;
-
   opacity: 0.7;
 
   animation: snowFallFront 7s linear infinite;
+}
+
+/* ========================================
+   REDUCED MOTION ACCESSIBILITY
+======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-sky-motion,
+  .aurora-water-reflection,
+  .rain-layer,
+  .rain-ground-splash,
+  .snow-layer {
+    animation: none;
+  }
 }

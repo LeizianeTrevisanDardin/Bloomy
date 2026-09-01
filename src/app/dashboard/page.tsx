@@ -1,73 +1,215 @@
 "use client";
 
+
+import ClockCard from "@/components/ClockCard";
 import BloomyWorld from "@/components/BloomyWorld";
 import HabitsPanel from "@/components/HabitCard";
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-[#17151d] text-white">
+    <div className="min-h-screen bg-[#0c0c0f] text-white">
       <div className="flex min-h-screen">
         {/* SIDEBAR */}
-        <aside className="hidden w-[230px] shrink-0 border-r border-white/10 bg-[#121016] lg:block">
-          <div className="sticky top-0 p-5">
-            <div className="mb-8">
-              <p className="text-lg font-semibold">
-                Bloomy
-              </p>
+        
+        <aside className="hidden w-[250px] shrink-0 border-r border-white/[0.06] bg-[#101014] lg:flex lg:flex-col">
+          <div className="flex flex-1 flex-col p-5">
+            {/* PROFILE */}
+            <div className="flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-purple-400/20 bg-purple-500/10 text-2xl">
+                👩🏻
+              </div>
 
-              <p className="text-xs text-zinc-500">
-                Your cozy productivity world
-              </p>
+              <div>
+                <p className="font-semibold text-zinc-100">
+                  Leiziane
+                </p>
+
+                <p className="mt-1 text-xs text-purple-300">
+                  Level 23
+                </p>
+              </div>
             </div>
 
-            <nav className="space-y-2 text-sm text-zinc-400">
-              <button className="w-full rounded-xl bg-purple-500/10 px-3 py-2 text-left text-purple-300">
-                Overview
-              </button>
+            {/* XP */}
+            <div className="mt-7">
+              <div className="mb-2 flex items-center justify-between text-xs">
+                <span className="text-zinc-400">
+                  XP
+                </span>
 
-              <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-white/5">
-                Habits
-              </button>
+                <span className="text-zinc-300">
+                  1,240 / 2,000
+                </span>
+              </div>
 
-              <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-white/5">
-                Tasks
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-full w-[62%] rounded-full bg-gradient-to-r from-purple-600 to-purple-400" />
+                </div>
 
-              <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-white/5">
-                Goals
-              </button>
+                <span className="text-lg">
+                  ⭐
+                </span>
+              </div>
+            </div>
 
-              <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-white/5">
-                Calendar
-              </button>
+            {/* NAVIGATION */}
+            <nav className="mt-10 space-y-2 text-sm text-zinc-400">
+              <SidebarButton
+                icon="🏠"
+                label="Overview"
+                active
+              />
 
-              <button className="w-full rounded-xl px-3 py-2 text-left hover:bg-white/5">
-                Statistics
-              </button>
+              <SidebarButton
+                icon="🌱"
+                label="Habits"
+              />
+
+              <SidebarButton
+                icon="☑️"
+                label="Tasks"
+              />
+
+              <SidebarButton
+                icon="🎯"
+                label="Goals"
+              />
+
+              <SidebarButton
+                icon="🗓️"
+                label="Calendar"
+              />
+
+              <SidebarButton
+                icon="📊"
+                label="Statistics"
+              />
+
+              <SidebarButton
+                icon="🛍️"
+                label="Shop"
+              />
+
+              <SidebarButton
+                icon="⚙️"
+                label="Settings"
+              />
             </nav>
+
+            {/* REMINDER */}
+            <div className="mt-auto rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-purple-500/[0.05] p-4">
+              <span className="text-2xl">
+                🌱
+              </span>
+
+              <p className="mt-3 text-sm font-medium text-zinc-200">
+                Reminder
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-zinc-400">
+                Small actions every day change everything.
+              </p>
+
+              <div className="mt-3 text-right text-purple-400">
+                ♥
+              </div>
+            </div>
           </div>
         </aside>
 
         {/* MAIN */}
         <main className="min-w-0 flex-1">
-          <div className="mx-auto w-full max-w-[1500px] p-4 md:p-6 xl:p-8">
-            <div className="space-y-4">
-              {/* WORLD */}
-              <section>
+          <div className="mx-auto w-full max-w-[1500px] p-3 md:p-5">
+            <div className="space-y-3">
+              {/* BLOOMY WORLD */}
+              <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
                 <BloomyWorld />
+
+               
+                {/* CLOCK */}
+
+                    <ClockCard />
+
+                {/* WEATHER */}
+                <div className="absolute right-4 top-[74px] z-40 hidden w-[185px] rounded-2xl border border-white/10 bg-black/60 p-4 shadow-xl backdrop-blur-lx md:block">
+                  <div className="flex items-start gap-3">
+                    <span className="text-4xl">
+                      🌧️
+                    </span>
+
+                    <div>
+                      <p className="text-2xl font-semibold">
+                        18°C
+                      </p>
+
+                      <p className="text-xs text-zinc-300">
+                        Rainy
+                      </p>
+
+                      <p className="text-xs text-zinc-400">
+                        Calgary, CA
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="my-3 h-px bg-white/10" />
+
+                  <p className="text-xs leading-5 text-zinc-300">
+                    Today&apos;s weather brings calm and focus.
+                  </p>
+                </div>
+
+                {/* WORLD STATUS */}
+                <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
+                  <div className="flex min-w-0 gap-2">
+                    <WorldStat
+                      icon="⚡"
+                      label="Energy"
+                      value="78/100"
+                      color="bg-amber-400"
+                      progress="78%"
+                    />
+
+                    <WorldStat
+                      icon="🪙"
+                      label="Coins"
+                      value="320"
+                    />
+
+                    <WorldStat
+                      icon="💎"
+                      label="Gems"
+                      value="15"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="pointer-events-auto hidden h-[46px] shrink-0 items-center rounded-xl border border-white/8 bg-black/70 px-3 text-xs font-medium text-zinc-100 shadow-lg backdrop-blur-lx transition hover:bg-black/85 sm:flex"
+                  >
+                    🗺️ Explore the world
+                  </button>
+                </div>
               </section>
 
               {/* HABITS / TASKS / GOALS */}
-              <section className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-                <HabitsPanel />
+              <section className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-3">
+                <div className="h-full min-w-0">
+                  <HabitsPanel />
+                </div>
 
-                <TasksPanel />
+                <div className="h-full min-w-0">
+                  <TasksPanel />
+                </div>
 
-                <GoalsPanel />
+                <div className="h-full min-w-0">
+                  <GoalsPanel />
+                </div>
               </section>
 
-              {/* CALENDAR / STATS */}
-              <section className="grid grid-cols-1 gap-4 xl:grid-cols-[0.8fr_2fr]">
+              {/* CALENDAR / STATISTICS */}
+              <section className="grid grid-cols-1 gap-3 xl:grid-cols-[0.8fr_2fr]">
                 <CalendarPanel />
 
                 <StatisticsPanel />
@@ -80,74 +222,169 @@ export default function DashboardPage() {
   );
 }
 
+  function SidebarButton({
+    icon,
+    label,
+    active = false,
+  }: {
+    icon: string;
+    label: string;
+    active?: boolean;
+  }) {
+    return (
+      <button
+        type="button"
+        className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
+          active
+            ? "bg-purple-500/15 text-purple-200"
+            : "hover:bg-white/[0.05] hover:text-white"
+        }`}
+      >
+        <span className="flex w-6 justify-center text-base">
+          {icon}
+        </span>
+
+        <span>{label}</span>
+      </button>
+    );
+  }
+
+  function WorldStat({
+    icon,
+    label,
+    value,
+    color,
+    progress,
+  }: {
+    icon: string;
+    label: string;
+    value: string;
+    color?: string;
+    progress?: string;
+  }) {
+    return (
+      <div className="flex h-[40px] min-w-[80px] items-center gap-2 rounded-xl border border-white/10 bg-black/70 px-3 shadow-lg backdrop-blur-lx md:min-w-[125px]">
+        <span className="shrink-0 text-base">
+          {icon}
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="hidden text-[11px] text-zinc-400 md:inline">
+              {label}
+            </span>
+
+            <span className="text-xs font-semibold text-white">
+              {value}
+            </span>
+          </div>
+
+          {progress && color && (
+            <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
+              <div
+                className={`h-full rounded-full ${color}`}
+                style={{ width: progress }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
 function TasksPanel() {
   return (
-    <div className="min-h-[300px] rounded-2xl border border-white/10 bg-white/5 p-5">
-      <h2 className="text-lg font-semibold">
-        📋 Today&apos;s Tasks
-      </h2>
+    <div className="min-h-[300px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-zinc-100">
+          📋 Today&apos;s Tasks
+        </h2>
 
-      <div className="mt-4 space-y-3">
+        <span className="text-xs text-zinc-500">
+          2 of 4
+        </span>
+      </div>
+
+      <div className="mt-4 space-y-2">
         <TaskRow
           title="Study Next.js"
+          description="1 hour of study"
           reward="+50 XP"
           completed
         />
 
         <TaskRow
           title="Work on CareerFlow"
+          description="Implement a new feature"
           reward="+80 XP"
           completed
         />
 
         <TaskRow
           title="Record YouTube video"
+          description="Edit and publish"
           reward="+60 XP"
         />
 
         <TaskRow
-          title="Read 20 min"
+          title="Read for 20 minutes"
+          description="Book: Atomic Habits"
           reward="+30 XP"
         />
       </div>
+
+      <button
+        type="button"
+        className="mt-4 w-full rounded-xl bg-white/[0.04] py-3 text-sm text-purple-300 transition hover:bg-white/[0.08]"
+      >
+        View all
+      </button>
     </div>
   );
 }
 
 function TaskRow({
   title,
+  description,
   reward,
   completed = false,
 }: {
   title: string;
+  description: string;
   reward: string;
   completed?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-black/10 p-3">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-black/20 p-3">
+      <div className="flex min-w-0 items-center gap-3">
         <div
-          className={`flex h-5 w-5 items-center justify-center rounded ${
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${
             completed
-              ? "bg-emerald-500 text-black"
-              : "border border-white/20"
+              ? "bg-emerald-500 text-xs font-bold text-black"
+              : "border border-white/25"
           }`}
         >
           {completed ? "✓" : ""}
         </div>
 
-        <p
-          className={`text-sm ${
-            completed
-              ? "text-zinc-400 line-through"
-              : "text-zinc-200"
-          }`}
-        >
-          {title}
-        </p>
+        <div className="min-w-0">
+          <p
+            className={`truncate text-sm ${
+              completed
+                ? "text-zinc-400 line-through"
+                : "text-zinc-200"
+            }`}
+          >
+            {title}
+          </p>
+
+          <p className="mt-0.5 truncate text-xs text-zinc-500">
+            {description}
+          </p>
+        </div>
       </div>
 
-      <span className="shrink-0 text-xs text-amber-300">
+      <span className="shrink-0 text-xs font-medium text-amber-300">
         {reward}
       </span>
     </div>
@@ -156,12 +393,18 @@ function TaskRow({
 
 function GoalsPanel() {
   return (
-    <div className="min-h-[300px] rounded-2xl border border-white/10 bg-white/5 p-5">
-      <h2 className="text-lg font-semibold">
-        🎯 Goals
-      </h2>
+    <div className="min-h-[300px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-zinc-100">
+          🎯 Goals
+        </h2>
 
-      <div className="mt-5 space-y-5">
+        <span className="text-xs text-zinc-500">
+          3 active
+        </span>
+      </div>
+
+      <div className="mt-4 space-y-3">
         <Goal
           title="Launch CareerFlow"
           progress={75}
@@ -177,6 +420,13 @@ function GoalsPanel() {
           progress={40}
         />
       </div>
+
+      <button
+        type="button"
+        className="mt-4 w-full rounded-xl bg-white/[0.04] py-3 text-sm text-purple-300 transition hover:bg-white/[0.08]"
+      >
+        View all
+      </button>
     </div>
   );
 }
@@ -189,23 +439,21 @@ function Goal({
   progress: number;
 }) {
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between gap-3">
+    <div className="rounded-xl bg-black/20 p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
         <p className="text-sm text-zinc-200">
           {title}
         </p>
 
-        <span className="text-xs text-zinc-400">
+        <span className="text-sm font-medium text-zinc-300">
           {progress}%
         </span>
       </div>
 
       <div className="h-2 overflow-hidden rounded-full bg-white/10">
         <div
-          className="h-full rounded-full bg-purple-500"
-          style={{
-            width: `${progress}%`,
-          }}
+          className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
+          style={{ width: `${progress}%` }}
         />
       </div>
     </div>
@@ -213,41 +461,95 @@ function Goal({
 }
 
 function CalendarPanel() {
-  return (
-    <div className="min-h-[260px] rounded-2xl border border-white/10 bg-white/5 p-5">
-      <h2 className="text-lg font-semibold">
-        🗓 Calendar
-      </h2>
+  const days = [
+    "M",
+    "T",
+    "W",
+    "T",
+    "F",
+    "S",
+    "S",
+  ];
 
-      <div className="mt-5 grid grid-cols-7 gap-2 text-center text-xs text-zinc-400">
-        {[
-          "M",
-          "T",
-          "W",
-          "T",
-          "F",
-          "S",
-          "S",
-        ].map((day, index) => (
-          <div key={`${day}-${index}`}>
+  return (
+    <div className="min-h-[270px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-zinc-100">
+          🗓️ Calendar
+        </h2>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/5 hover:text-white"
+          >
+            ‹
+          </button>
+
+          <button
+            type="button"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/5 hover:text-white"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+      <p className="mt-3 text-center text-sm font-medium text-zinc-300">
+        June 2024
+      </p>
+
+      <div className="mt-4 grid grid-cols-7 gap-2 text-center">
+        {days.map((day, index) => (
+          <div
+            key={`${day}-${index}`}
+            className="text-xs text-zinc-500"
+          >
             {day}
           </div>
         ))}
 
-        {Array.from({
-          length: 28,
-        }).map((_, index) => (
-          <div
-            key={index}
-            className={`flex aspect-square items-center justify-center rounded-lg ${
-              index === 8
-                ? "bg-purple-500 text-white"
-                : "bg-black/10 text-zinc-300"
-            }`}
-          >
-            {index + 1}
-          </div>
-        ))}
+        {Array.from({ length: 28 }).map(
+          (_, index) => {
+            const dayNumber = index + 1;
+            const selected = dayNumber === 9;
+            const hasActivity = [
+              2,
+              9,
+              10,
+              11,
+              12,
+              14,
+              15,
+            ].includes(dayNumber);
+
+            return (
+              <div
+                key={dayNumber}
+                className="flex flex-col items-center gap-1"
+              >
+                <button
+                  type="button"
+                  className={`flex aspect-square w-full items-center justify-center rounded-lg text-xs transition ${
+                    selected
+                      ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+                      : "text-zinc-300 hover:bg-white/5"
+                  }`}
+                >
+                  {dayNumber}
+                </button>
+
+                <span
+                  className={`h-1 w-1 rounded-full ${
+                    hasActivity
+                      ? "bg-emerald-400"
+                      : "bg-transparent"
+                  }`}
+                />
+              </div>
+            );
+          },
+        )}
       </div>
     </div>
   );
@@ -255,34 +557,42 @@ function CalendarPanel() {
 
 function StatisticsPanel() {
   return (
-    <div className="min-h-[260px] rounded-2xl border border-white/10 bg-white/5 p-5">
-      <h2 className="text-lg font-semibold">
+    <div className="min-h-[270px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
+      <h2 className="text-lg font-semibold text-zinc-100">
         📊 Statistics
       </h2>
 
       <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat
           icon="🔥"
-          value="7"
-          label="Day streak"
+          value="58"
+          label="Current streak"
+          description="days"
+          color="text-orange-400"
         />
 
         <Stat
           icon="⭐"
           value="1,240"
           label="Total XP"
+          description="earned"
+          color="text-amber-300"
         />
 
         <Stat
           icon="🏆"
           value="23"
           label="Current level"
+          description="keep growing"
+          color="text-amber-400"
         />
 
         <Stat
           icon="🌱"
           value="87%"
-          label="Habits this week"
+          label="Habits completed"
+          description="this week"
+          color="text-emerald-400"
         />
       </div>
     </div>
@@ -293,23 +603,33 @@ function Stat({
   icon,
   value,
   label,
+  description,
+  color,
 }: {
   icon: string;
   value: string;
   label: string;
+  description: string;
+  color: string;
 }) {
   return (
-    <div className="rounded-xl bg-black/10 p-4">
-      <div className="flex items-center gap-2">
-        <span>{icon}</span>
+    <div className="rounded-xl bg-black/20 p-4">
+      <div className="flex items-center gap-3">
+        <span className="text-2xl">
+          {icon}
+        </span>
 
-        <span className="text-xl font-semibold">
+        <span className={`text-2xl font-semibold ${color}`}>
           {value}
         </span>
       </div>
 
-      <p className="mt-2 text-xs text-zinc-500">
+      <p className="mt-4 text-xs font-medium text-zinc-300">
         {label}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        {description}
       </p>
     </div>
   );

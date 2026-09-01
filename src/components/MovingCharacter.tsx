@@ -5,17 +5,21 @@ import CharacterSprite from "./CharacterSprite";
 
 type Direction = "idle" | "left" | "right";
 
+// Limites horizontais do caminho
 const LEFT_X = 30;
 const RIGHT_X = 65;
-const Y = 2;
+
+// height for the path to be visible above the grass, but not too high to be out of the screen
+//
+const Y = 12;
 
 const WALK_SPEED = 0.12;
 const IDLE_TIME = 1600;
 
-// dogs starts a bit delayed after the character starts moving
+// delay for the dog to start moving after the character starts moving
 const DOG_DELAY = 450;
 
-// intially the dog is a bit behind the character
+// distance between the character and the dog when they start moving
 const DOG_START_GAP = 8;
 
 export default function MovingCharacter() {
@@ -32,8 +36,9 @@ export default function MovingCharacter() {
   // DOG
   // =========================
 
-  const [dogX, setDogX] =
-    useState(LEFT_X - DOG_START_GAP);
+  const [dogX, setDogX] = useState(
+    LEFT_X - DOG_START_GAP,
+  );
 
   const [dogDirection, setDogDirection] =
     useState<Direction>("idle");
@@ -47,7 +52,7 @@ export default function MovingCharacter() {
       return;
     }
 
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       if (x <= LEFT_X) {
         setDirection("right");
       } else {
@@ -56,7 +61,7 @@ export default function MovingCharacter() {
     }, IDLE_TIME);
 
     return () => {
-      clearTimeout(timeout);
+      window.clearTimeout(timeout);
     };
   }, [direction, x]);
 
@@ -69,14 +74,14 @@ export default function MovingCharacter() {
       return;
     }
 
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       setX((current) => {
-        // RIGHT
+        // WALKING RIGHT
         if (direction === "right") {
           const next = current + WALK_SPEED;
 
           if (next >= RIGHT_X) {
-            setTimeout(() => {
+            window.setTimeout(() => {
               setDirection("idle");
             }, 0);
 
@@ -86,11 +91,11 @@ export default function MovingCharacter() {
           return next;
         }
 
-        // LEFT
+        // WALKING LEFT
         const next = current - WALK_SPEED;
 
         if (next <= LEFT_X) {
-          setTimeout(() => {
+          window.setTimeout(() => {
             setDirection("idle");
           }, 0);
 
@@ -102,7 +107,7 @@ export default function MovingCharacter() {
     }, 16);
 
     return () => {
-      clearInterval(interval);
+      window.clearInterval(interval);
     };
   }, [direction]);
 
@@ -115,12 +120,12 @@ export default function MovingCharacter() {
       return;
     }
 
-    const timeout = setTimeout(() => {
+    const timeout = window.setTimeout(() => {
       setDogDirection(direction);
     }, DOG_DELAY);
 
     return () => {
-      clearTimeout(timeout);
+      window.clearTimeout(timeout);
     };
   }, [direction]);
 
@@ -133,21 +138,17 @@ export default function MovingCharacter() {
       return;
     }
 
-    const interval = setInterval(() => {
+    const interval = window.setInterval(() => {
       setDogX((current) => {
-        // =====================
-        // DOG RIGHT
-        // =====================
-
+        // DOG WALKING RIGHT
         if (dogDirection === "right") {
           const destination =
             RIGHT_X - DOG_START_GAP;
 
-          const next =
-            current + WALK_SPEED;
+          const next = current + WALK_SPEED;
 
           if (next >= destination) {
-            setTimeout(() => {
+            window.setTimeout(() => {
               setDogDirection("idle");
             }, 0);
 
@@ -157,18 +158,14 @@ export default function MovingCharacter() {
           return next;
         }
 
-        // =====================
-        // DOG LEFT
-        // =====================
-
+        // DOG WALKING LEFT
         const destination =
           LEFT_X + DOG_START_GAP;
 
-        const next =
-          current - WALK_SPEED;
+        const next = current - WALK_SPEED;
 
         if (next <= destination) {
-          setTimeout(() => {
+          window.setTimeout(() => {
             setDogDirection("idle");
           }, 0);
 
@@ -180,7 +177,7 @@ export default function MovingCharacter() {
     }, 16);
 
     return () => {
-      clearInterval(interval);
+      window.clearInterval(interval);
     };
   }, [dogDirection]);
 
@@ -239,6 +236,7 @@ export default function MovingCharacter() {
               ? 500
               : 180
           }
+          paused={false}
         />
       </div>
 
@@ -261,6 +259,7 @@ export default function MovingCharacter() {
               ? 500
               : 180
           }
+          paused={false}
         />
       </div>
     </>
