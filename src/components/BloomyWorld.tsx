@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import MovingCharacter from "./MovingCharacter";
+import GameStats from "@/components/GameStats";
+import HabitCard from "@/components/HabitCard";
 
 type Scene =
   | "sunny"
@@ -116,6 +118,8 @@ export default function BloomyWorld() {
       {/* BLOOMY WORLD */}
       {/* ================================= */}
 
+      <GameStats />
+
       <div className="relative aspect-[16/7] w-full overflow-hidden rounded-2xl bg-black">
         {/* ================================= */}
         {/* BACKGROUND */}
@@ -172,6 +176,11 @@ export default function BloomyWorld() {
         </div>
         )}
         </div>
+        <div className="space-y-3">
+            <HabitCard title="Drink Water" />
+            <HabitCard title="Workout" xpReward={40} coinReward={15} />
+            <HabitCard title="Study 30 minutes" xpReward={30} coinReward={10} />
+            </div>
     </div>
   );
 }
