@@ -57,6 +57,7 @@ export default function BloomyWorld() {
 
     updateScene();
 
+    // Verifica o horário novamente a cada minuto
     const interval = setInterval(() => {
       updateScene();
     }, 60_000);
@@ -67,7 +68,7 @@ export default function BloomyWorld() {
   }, []);
 
   // =================================
-  // WEATHER / SPECIAL EFFECT
+  // SPECIAL EFFECT
   // =================================
 
   const getEffect = () => {
@@ -116,7 +117,10 @@ export default function BloomyWorld() {
       {/* ================================= */}
 
       <div className="relative aspect-[16/7] w-full overflow-hidden rounded-2xl bg-black">
-        {/* Background */}
+        {/* ================================= */}
+        {/* BACKGROUND */}
+        {/* ================================= */}
+
         <img
           src={`/bloomy/${scene}.png`}
           alt={`${scene} Bloomy world`}
@@ -124,19 +128,18 @@ export default function BloomyWorld() {
         />
 
         {/* ================================= */}
-        {/* AURORA  */}
+        {/* AURORA */}
         {/* ================================= */}
 
-       {scene === "aurora" && effect && (
-  <div className="pointer-events-none absolute inset-0 z-[5] overflow-hidden">
-    <img
-      src={effect}
-      alt=""
-      className="aurora-effect h-full w-[110%] max-w-none object-cover"
-    />
-  </div>
-)}
- 
+        {scene === "aurora" && effect && (
+          <div className="pointer-events-none absolute inset-0 z-[5] overflow-hidden">
+            <img
+              src={effect}
+              alt=""
+              className="aurora-effect h-full w-[110%] max-w-none object-cover"
+            />
+          </div>
+        )}
 
         {/* ================================= */}
         {/* CHARACTER + DOG */}
@@ -144,18 +147,31 @@ export default function BloomyWorld() {
 
         <MovingCharacter />
 
+
         {/* ================================= */}
-        {/* RAIN / SNOW */}
+        {/* RAIN */}
         {/* ================================= */}
 
-        {effect && scene !== "aurora" && (
-          <img
-            src={effect}
-            alt=""
-            className="pointer-events-none absolute inset-0 z-20 h-full w-full object-cover"
-          />
+        {scene === "rainy" && (
+        <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+            <div className="rain-layer rain-layer-back" />
+            <div className="rain-layer rain-layer-front" />
+        </div>
         )}
-      </div>
+        
+
+        {/* ================================= */}
+        {/* SNOW */}
+        {/* ================================= */}
+
+        {scene === "snowy" && (
+        <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+            <div className="snow-layer snow-back" />
+            <div className="snow-layer snow-middle" />
+            <div className="snow-layer snow-front" />
+        </div>
+        )}
+        </div>
     </div>
   );
 }

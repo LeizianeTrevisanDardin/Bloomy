@@ -89,3 +89,166 @@ body {
 
   mask-composite: intersect;
 }
+
+/* ================================= */
+/* RAIN */
+/* ================================= */
+
+@keyframes rainFall {
+  from {
+    transform: translateY(-35%);
+  }
+
+  to {
+    transform: translateY(35%);
+  }
+}
+
+.rain-layer {
+  position: absolute;
+
+  top: -50%;
+  left: -10%;
+
+  width: 120%;
+  height: 200%;
+
+  background-image: repeating-linear-gradient(
+    105deg,
+    transparent 0px,
+    transparent 18px,
+    rgba(220, 240, 255, 0.5) 19px,
+    rgba(220, 240, 255, 0.5) 20px,
+    transparent 21px,
+    transparent 38px
+  );
+
+  background-size: 45px 90px;
+}
+
+/* chuva distante */
+.rain-layer-back {
+  opacity: 0.3;
+
+  animation:
+    rainFall 2.8s linear infinite;
+}
+
+/* chuva mais próxima */
+.rain-layer-front {
+  opacity: 0.5;
+
+  background-size: 65px 125px;
+
+  animation:
+    rainFall 2.1s linear infinite;
+}
+
+/* ================================= */
+/* SNOW */
+/* ================================= */
+
+@keyframes snowFallBack {
+  0% {
+    transform: translate3d(0, -15%, 0);
+  }
+
+  50% {
+    transform: translate3d(8px, 5%, 0);
+  }
+
+  100% {
+    transform: translate3d(-5px, 25%, 0);
+  }
+}
+
+@keyframes snowFallMiddle {
+  0% {
+    transform: translate3d(0, -20%, 0);
+  }
+
+  50% {
+    transform: translate3d(-12px, 5%, 0);
+  }
+
+  100% {
+    transform: translate3d(7px, 30%, 0);
+  }
+}
+
+@keyframes snowFallFront {
+  0% {
+    transform: translate3d(0, -25%, 0);
+  }
+
+  50% {
+    transform: translate3d(15px, 5%, 0);
+  }
+
+  100% {
+    transform: translate3d(-8px, 35%, 0);
+  }
+}
+
+.snow-layer {
+  position: absolute;
+
+  top: -50%;
+  left: -5%;
+
+  width: 110%;
+  height: 200%;
+
+  background-repeat: repeat;
+}
+
+/* ❄️ neve distante — bem pequena */
+
+.snow-back {
+  background-image:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.65) 0 1px,
+      transparent 1.5px
+    );
+
+  background-size: 28px 32px;
+
+  opacity: 0.45;
+
+  animation: snowFallBack 12s linear infinite;
+}
+
+/* ❄️ neve média */
+
+.snow-middle {
+  background-image:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.8) 0 1.5px,
+      transparent 2px
+    );
+
+  background-size: 45px 48px;
+
+  opacity: 0.65;
+
+  animation: snowFallMiddle 9s linear infinite;
+}
+
+/* ❄️ alguns flocos próximos */
+
+.snow-front {
+  background-image:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.9) 0 2px,
+      transparent 2.5px
+    );
+
+  background-size: 75px 72px;
+
+  opacity: 0.7;
+
+  animation: snowFallFront 7s linear infinite;
+}
