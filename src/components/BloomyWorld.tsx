@@ -1,24 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import MovingCharacter from "./MovingCharacter";
+import { useState } from "react";
 
-type Scene =
-  | "sunny"
-  | "cloudy"
-  | "rainy"
-  | "snowy"
-  | "sunrise"
-  | "sunset"
-  | "night"
-  | "aurora";
+import type {
+  Scene,
+} from "@/types/weather";
+
+import MovingCharacter from "./MovingCharacter";
 
 type RainSplash = {
   left: string;
   top: string;
   delay: string;
   duration: string;
-  size: "small" | "medium" | "large";
+  size:
+    | "small"
+    | "medium"
+    | "large";
+};
+
+type BloomyWorldProps = {
+  automaticScene: Scene;
 };
 
 const scenes: Scene[] = [
@@ -119,85 +121,71 @@ const rainSplashes: RainSplash[] = [
   },
 ];
 
-// =================================
-// SCENE BASED ON LOCAL TIME
-// =================================
+export default function BloomyWorld({
+  automaticScene,
+}: BloomyWorldProps) {
+  /*
+   * When manualScene is null,
+   * Bloomy follows the real weather.
+   */
+  const [
+    manualScene,
+    setManualScene,
+  ] = useState<Scene | null>(
+    null,
+  );
 
-function getSceneFromTime(): Scene {
-  const hour = new Date().getHours();
+  const scene =
+    manualScene ??
+    automaticScene;
 
-  if (hour >= 5 && hour < 8) {
-    return "sunrise";
-  }
-
-  if (hour >= 8 && hour < 17) {
-    return "sunny";
-  }
-
-  if (hour >= 17 && hour < 20) {
-    return "sunset";
-  }
-
-  return "night";
-}
-
-export default function BloomyWorld() {
-  const [scene, setScene] =
-    useState<Scene>("sunny");
-
-  // Keep this true while testing the scenes.
-  // Change it to false when the app is ready.
+  /*
+   * Keep true while testing.
+   * Change to false to hide the buttons.
+   */
   const showSceneSelector = true;
-
-  // =================================
-  // AUTOMATIC SCENE BASED ON TIME
-  // =================================
-
-  useEffect(() => {
-    const updateScene = () => {
-      setScene(getSceneFromTime());
-    };
-
-    updateScene();
-
-    const interval = window.setInterval(
-      updateScene,
-      60_000,
-    );
-
-    return () => {
-      window.clearInterval(interval);
-    };
-  }, []);
-
-  // Aurora uses the Night background so every
-  // object remains in exactly the same position.
-  // const backgroundScene: Scene =
-  //   scene === "aurora"
-  //     ? "night"
-  //     : scene;
-
-  
 
   return (
     <div className="w-full bg-[#151419]">
       {/* ================================= */}
-      {/* SCENE SELECTOR BAR */}
+      {/* SCENE SELECTOR */}
       {/* ================================= */}
 
       {showSceneSelector && (
-        <div className="flex min-h-[58px] flex-wrap items-center justify-center gap-2 border-b border-white/[0.08] bg-[#151419] px-4 py-2">
-          <span className="mr-2 hidden text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 md:block">
+        <div className="scrollbar-none flex min-h-[54px] w-full items-center gap-2 overflow-x-auto border-b border-white/[0.08] bg-[#151419] px-2 py-2 sm:min-h-[58px] sm:justify-center sm:px-4">
+          <span className="mr-2 hidden shrink-0 text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 md:block">
             Scene
           </span>
+
+          {/* AUTO */}
+
+          <button
+            type="button"
+            onClick={() =>
+              setManualScene(null)
+            }
+            className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs transition ${
+              manualScene === null
+                ? "border-emerald-400/30 bg-emerald-500/20 text-emerald-200"
+                : "border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
+            }`}
+          >
+            Auto
+          </button>
+
+          {/* MANUAL SCENES */}
 
           {scenes.map((item) => (
             <button
               key={item}
               type="button"
-              onClick={() => setScene(item)}
-              className={`rounded-xl border px-3 py-1.5 text-xs capitalize transition ${
-                scene === item
+              onClick={() =>
+                setManualScene(
+                  item,
+                )
+              }
+              className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs capitalize transition ${
+                manualScene === item
                   ? "border-purple-400/30 bg-purple-500/20 text-purple-200"
                   : "border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
               }`}
@@ -209,10 +197,10 @@ export default function BloomyWorld() {
       )}
 
       {/* ================================= */}
-      {/* BLOOMY WORLD */}
+      {/* BLOOMY SCENE */}
       {/* ================================= */}
 
-      <div className="relative h-[430px] w-full overflow-hidden bg-black sm:h-[480px] xl:h-[540px]">
+      <div className="relative h-[350px] w-full overflow-hidden bg-black sm:h-[420px] md:h-[470px] lg:h-[clamp(560px,45vw,700px)] 2xl:h-[720px]">
         {/* ================================= */}
         {/* BACKGROUND */}
         {/* ================================= */}
@@ -220,7 +208,7 @@ export default function BloomyWorld() {
         <img
           src={`/bloomy/${scene}.png`}
           alt={`${scene} Bloomy world`}
-          className="absolute inset-0 h-full w-full object-cover object-center"
+          className="absolute inset-0 h-full w-full object-cover object-[52%_center] sm:object-center"
         />
 
         {/* ================================= */}
@@ -229,79 +217,89 @@ export default function BloomyWorld() {
 
         <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/35 via-transparent to-black/10" />
 
+        {/* ================================= */}
+        {/* AURORA */}
+        {/* ================================= */}
+
         {scene === "aurora" && (
-  <>
-    {/* SVG FILTER USED TO CREATE REAL WAVES */}
+          <>
+            {/* SVG WAVE FILTER */}
 
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute h-0 w-0"
-    >
-      <defs>
-        <filter
-          id="aurora-wave-filter"
-          x="-20%"
-          y="-20%"
-          width="140%"
-          height="140%"
-        >
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.008 0.018"
-            numOctaves="2"
-            seed="4"
-            result="auroraNoise"
-          >
-            <animate
-              attributeName="baseFrequency"
-              dur="10s"
-              values="
-                0.008 0.018;
-                0.012 0.026;
-                0.006 0.022;
-                0.008 0.018
-              "
-              repeatCount="indefinite"
-            />
-          </feTurbulence>
+            <svg
+              aria-hidden="true"
+              className="pointer-events-none absolute h-0 w-0"
+            >
+              <defs>
+                <filter
+                  id="aurora-wave-filter"
+                  x="-20%"
+                  y="-20%"
+                  width="140%"
+                  height="140%"
+                >
+                  <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.008 0.018"
+                    numOctaves="2"
+                    seed="4"
+                    result="auroraNoise"
+                  >
+                    <animate
+                      attributeName="baseFrequency"
+                      dur="10s"
+                      values="
+                        0.008 0.018;
+                        0.012 0.026;
+                        0.006 0.022;
+                        0.008 0.018
+                      "
+                      repeatCount="indefinite"
+                    />
+                  </feTurbulence>
 
-          <feDisplacementMap
-            in="SourceGraphic"
-            in2="auroraNoise"
-            scale="24"
-            xChannelSelector="R"
-            yChannelSelector="B"
-          >
-            <animate
-              attributeName="scale"
-              dur="8s"
-              values="16;28;20;16"
-              repeatCount="indefinite"
-            />
-          </feDisplacementMap>
-        </filter>
-      </defs>
-    </svg>
+                  <feDisplacementMap
+                    in="SourceGraphic"
+                    in2="auroraNoise"
+                    scale="24"
+                    xChannelSelector="R"
+                    yChannelSelector="B"
+                  >
+                    <animate
+                      attributeName="scale"
+                      dur="8s"
+                      values="
+                        16;
+                        28;
+                        20;
+                        16
+                      "
+                      repeatCount="indefinite"
+                    />
+                  </feDisplacementMap>
+                </filter>
+              </defs>
+            </svg>
 
-    {/* ANIMATED AURORA IN THE SKY */}
+            {/* SKY AURORA */}
 
-    <div className="pointer-events-none absolute inset-0 z-[5] overflow-hidden">
-      <div className="absolute left-1/2 top-0 h-full w-[110%] -translate-x-1/2">
-        <img
-          src="/bloomy/effects/aurora.png"
-          alt=""
-          className="aurora-sky-motion absolute inset-0 h-full w-full max-w-none object-cover"
-        />
-      </div>
-    </div>
+            <div className="pointer-events-none absolute inset-0 z-[5] overflow-hidden">
+              <div className="absolute left-1/2 top-0 h-full w-[110%] -translate-x-1/2">
+                <img
+                  src="/bloomy/effects/aurora.png"
+                  alt=""
+                  className="aurora-sky-motion absolute inset-0 h-full w-full max-w-none object-cover"
+                />
+              </div>
+            </div>
 
-    {/* ANIMATED REFLECTION IN THE WATER */}
+            {/* WATER REFLECTION */}
 
-    <div className="pointer-events-none absolute inset-0 z-[6] overflow-hidden">
-      <div className="aurora-water-reflection" />
-    </div>
-  </>
-)}
+            <div className="pointer-events-none absolute inset-0 z-[6] overflow-hidden">
+              <div className="aurora-water-reflection" />
+            </div>
+          </>
+        )}
+
         {/* ================================= */}
         {/* CHARACTER AND DOG */}
         {/* ================================= */}
@@ -322,7 +320,7 @@ export default function BloomyWorld() {
 
             <div className="rain-layer rain-layer-front" />
 
-            {/* RAIN SPLASHES ON THE GROUND */}
+            {/* GROUND SPLASHES */}
 
             <div className="absolute inset-0 z-30">
               {rainSplashes.map(
@@ -331,13 +329,18 @@ export default function BloomyWorld() {
                   index,
                 ) => (
                   <span
-                    key={index}
+                    key={`${splash.left}-${index}`}
                     className={`rain-ground-splash rain-ground-splash-${splash.size}`}
                     style={{
-                      left: splash.left,
-                      top: splash.top,
+                      left:
+                        splash.left,
+
+                      top:
+                        splash.top,
+
                       animationDelay:
                         splash.delay,
+
                       animationDuration:
                         splash.duration,
                     }}

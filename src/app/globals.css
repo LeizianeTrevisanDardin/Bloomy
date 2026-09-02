@@ -458,3 +458,13 @@ body {
     animation: none;
   }
 }
+
+/* Hides scrollbars while keeping horizontal scrolling usable. */
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

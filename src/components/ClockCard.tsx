@@ -39,16 +39,16 @@ export default function ClockCard() {
     : "Loading date...";
 
   return (
-    <div className="absolute left-4 top-[74px] z-40 hidden min-w-[170px] rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-center shadow-xl backdrop-blur-lx sm:block">
-      <div className="flex justify-center">
-        <span className="text-xl font-semibold tabular-nums text-zinc-100">
-          {formattedTime}
-        </span>
-      </div>
-
-      <p className="mt-1 text-center text-xs text-zinc-300">
-        {formattedDate}
-      </p>
+  <div className="absolute left-2 top-[62px] z-40 min-w-[112px] rounded-xl border border-white/10 bg-black/60 px-2.5 py-2 text-center shadow-xl backdrop-blur-xl sm:left-4 sm:top-[74px] sm:min-w-[170px] sm:rounded-2xl sm:px-4 sm:py-3">
+    <div className="flex justify-center">
+      <span className="text-base font-semibold tabular-nums text-zinc-100 sm:text-xl">
+        {formattedTime}
+      </span>
     </div>
-  );
+
+    <p className="mt-0.5 max-w-[110px] truncate text-center text-[10px] text-zinc-300 sm:mt-1 sm:max-w-none sm:text-xs">
+      {formattedDate}
+    </p>
+  </div>
+);
 }
