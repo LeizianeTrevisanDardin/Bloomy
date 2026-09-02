@@ -12,7 +12,7 @@ import {
 
 import type {
   Profile,
-} from "@/types/profile";
+} from "@/types/profiles";
 
 export function useProfile() {
   const [supabase] = useState(
@@ -94,8 +94,15 @@ export function useProfile() {
     }, [supabase]);
 
   useEffect(() => {
-    loadProfile();
-  }, [loadProfile]);
+  const timeoutId =
+    window.setTimeout(() => {
+      void loadProfile();
+    }, 0);
+
+  return () => {
+    window.clearTimeout(timeoutId);
+  };
+}, [loadProfile]);
 
   return {
     profile,

@@ -6,7 +6,7 @@ import BloomyWorld from "@/components/BloomyWorld";
 import HabitsPanel from "@/components/HabitCard";
 import WeatherCard from "@/components/WeatherCard";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
-import { useProfile } from "@/hooks/useProfile";
+import { useProfile } from "@/hooks/useProfiles";
 
 export default function DashboardPage() {
   const {

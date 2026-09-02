@@ -11,6 +11,10 @@ import type {
   WeatherData,
 } from "@/types/weather";
 
+// =================================
+// API RESPONSE TYPES
+// =================================
+
 type OpenMeteoResponse = {
   current: {
     time: string;
@@ -24,6 +28,7 @@ type OpenMeteoResponse = {
     weather_code: number;
     cloud_cover: number;
   };
+
   daily: {
     sunrise: string[];
     sunset: string[];
@@ -43,6 +48,10 @@ type AuroraResponse = {
   observationTime?: string | null;
 };
 
+// =================================
+// FALLBACK LOCATION
+// =================================
+
 const CALGARY_LOCATION = {
   latitude: 51.0447,
   longitude: -114.0719,
@@ -50,15 +59,17 @@ const CALGARY_LOCATION = {
   countryCode: "CA",
 };
 
-/*
- * Safely reads an API response.
- * If an API returns text instead of JSON,
- * Bloomy continues running normally.
- */
+// =================================
+// SAFE JSON READER
+// =================================
+
 async function readJsonSafely<T>(
   response: Response | null,
 ): Promise<T | null> {
-  if (!response || !response.ok) {
+  if (
+    !response ||
+    !response.ok
+  ) {
     return null;
   }
 
@@ -78,6 +89,10 @@ async function readJsonSafely<T>(
   }
 }
 
+// =================================
+// TIME HELPERS
+// =================================
+
 function minutesFromDateString(
   value?: string,
 ) {
@@ -95,8 +110,19 @@ function minutesFromDateString(
   const [hours, minutes] =
     time.split(":").map(Number);
 
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes)
+  ) {
+    return 0;
+  }
+
   return hours * 60 + minutes;
 }
+
+// =================================
+// WEATHER DESCRIPTION
+// =================================
 
 function getWeatherDescription(
   code: number,
@@ -110,7 +136,8 @@ function getWeatherDescription(
 
   if ([1, 2].includes(code)) {
     return {
-      description: "Partly cloudy",
+      description:
+        "Partly cloudy",
       icon: "🌤️",
     };
   }
@@ -168,9 +195,12 @@ function getWeatherDescription(
     };
   }
 
-  if ([95, 96, 99].includes(code)) {
+  if (
+    [95, 96, 99].includes(code)
+  ) {
     return {
-      description: "Thunderstorm",
+      description:
+        "Thunderstorm",
       icon: "⛈️",
     };
   }
@@ -180,6 +210,10 @@ function getWeatherDescription(
     icon: "🌤️",
   };
 }
+
+// =================================
+// AUTOMATIC SCENE
+// =================================
 
 function getAutomaticScene({
   weatherCode,
@@ -241,32 +275,38 @@ function getAutomaticScene({
     48,
   ];
 
-  /*
-   * Snow has the highest weather priority.
-   */
+  // =================================
+  // 1. SNOW
+  // =================================
+
   if (
     snowfall > 0 ||
-    snowCodes.includes(weatherCode)
+    snowCodes.includes(
+      weatherCode,
+    )
   ) {
     return "snowy";
   }
 
-  /*
-   * Rain and storms appear during day or night.
-   */
+  // =================================
+  // 2. RAIN OR THUNDERSTORM
+  // =================================
+
   if (
     precipitation > 0 ||
     rain > 0 ||
     showers > 0 ||
-    rainCodes.includes(weatherCode)
+    rainCodes.includes(
+      weatherCode,
+    )
   ) {
     return "rainy";
   }
 
-  /*
-   * Aurora appears only at night with enough
-   * NOAA activity and acceptable cloud cover.
-   */
+  // =================================
+  // 3. AURORA
+  // =================================
+
   if (
     !isDay &&
     auroraProbability >= 10 &&
@@ -275,16 +315,9 @@ function getAutomaticScene({
     return "aurora";
   }
 
-  /*
-   * Cloudy conditions have priority over
-   * regular sunny and night scenes.
-   */
-  if (
-    cloudyCodes.includes(weatherCode) ||
-    cloudCover >= 70
-  ) {
-    return "cloudy";
-  }
+  // =================================
+  // 4. NIGHT
+  // =================================
 
   if (!isDay) {
     return "night";
@@ -305,36 +338,57 @@ function getAutomaticScene({
       sunset,
     );
 
-  /*
-   * Sunrise starts 45 minutes before sunrise
-   * and remains for 75 minutes afterward.
-   */
-  if (
+  // =================================
+  // 5. SUNRISE
+  // =================================
+
+  const isSunriseTime =
     sunriseMinutes > 0 &&
     currentMinutes >=
       sunriseMinutes - 45 &&
     currentMinutes <=
-      sunriseMinutes + 75
-  ) {
+      sunriseMinutes + 75;
+
+  if (isSunriseTime) {
     return "sunrise";
   }
 
-  /*
-   * Sunset starts 75 minutes before sunset
-   * and remains for 45 minutes afterward.
-   */
-  if (
+  // =================================
+  // 6. SUNSET
+  // =================================
+
+  const isSunsetTime =
     sunsetMinutes > 0 &&
     currentMinutes >=
-      sunsetMinutes - 75 &&
-    currentMinutes <=
-      sunsetMinutes + 45
-  ) {
+      sunsetMinutes - 75;
+
+  if (isSunsetTime) {
     return "sunset";
   }
 
+  // =================================
+  // 7. CLOUDY
+  // =================================
+
+  if (
+    cloudyCodes.includes(
+      weatherCode,
+    ) ||
+    cloudCover >= 70
+  ) {
+    return "cloudy";
+  }
+
+  // =================================
+  // 8. SUNNY
+  // =================================
+
   return "sunny";
 }
+
+// =================================
+// BROWSER LOCATION
+// =================================
 
 function getBrowserLocation() {
   return new Promise<{
@@ -345,43 +399,62 @@ function getBrowserLocation() {
     if (!navigator.geolocation) {
       resolve({
         latitude:
-          CALGARY_LOCATION.latitude,
+          CALGARY_LOCATION
+            .latitude,
+
         longitude:
-          CALGARY_LOCATION.longitude,
+          CALGARY_LOCATION
+            .longitude,
+
         usedFallback: true,
       });
 
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          latitude:
-            position.coords.latitude,
-          longitude:
-            position.coords.longitude,
-          usedFallback: false,
-        });
-      },
-      () => {
-        resolve({
-          latitude:
-            CALGARY_LOCATION.latitude,
-          longitude:
-            CALGARY_LOCATION.longitude,
-          usedFallback: true,
-        });
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 10_000,
-        maximumAge:
-          30 * 60 * 1000,
-      },
-    );
+    navigator.geolocation
+      .getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude:
+              position.coords
+                .latitude,
+
+            longitude:
+              position.coords
+                .longitude,
+
+            usedFallback: false,
+          });
+        },
+
+        () => {
+          resolve({
+            latitude:
+              CALGARY_LOCATION
+                .latitude,
+
+            longitude:
+              CALGARY_LOCATION
+                .longitude,
+
+            usedFallback: true,
+          });
+        },
+
+        {
+          enableHighAccuracy: false,
+          timeout: 10_000,
+          maximumAge:
+            30 * 60 * 1000,
+        },
+      );
   });
 }
+
+// =================================
+// LOCAL WEATHER HOOK
+// =================================
 
 export function useLocalWeather() {
   const [weather, setWeather] =
@@ -398,11 +471,18 @@ export function useLocalWeather() {
     useState(true);
 
   const [error, setError] =
-    useState<string | null>(null);
+    useState<string | null>(
+      null,
+    );
+
+  // =================================
+  // LOAD WEATHER
+  // =================================
 
   const loadWeather =
     useCallback(async () => {
       try {
+        setLoading(true);
         setError(null);
 
         const location =
@@ -414,12 +494,14 @@ export function useLocalWeather() {
         const longitude =
           location.longitude;
 
-        /*
-         * Open-Meteo weather URL.
-         */
-        const weatherUrl = new URL(
-          "https://api.open-meteo.com/v1/forecast",
-        );
+        // =================================
+        // OPEN-METEO URL
+        // =================================
+
+        const weatherUrl =
+          new URL(
+            "https://api.open-meteo.com/v1/forecast",
+          );
 
         weatherUrl.searchParams.set(
           "latitude",
@@ -461,12 +543,14 @@ export function useLocalWeather() {
           "1",
         );
 
-        /*
-         * BigDataCloud location-name URL.
-         */
-        const locationUrl = new URL(
-          "https://api.bigdatacloud.net/data/reverse-geocode-client",
-        );
+        // =================================
+        // LOCATION NAME URL
+        // =================================
+
+        const locationUrl =
+          new URL(
+            "https://api.bigdatacloud.net/data/reverse-geocode-client",
+          );
 
         locationUrl.searchParams.set(
           "latitude",
@@ -483,9 +567,14 @@ export function useLocalWeather() {
           "en",
         );
 
-        const weatherRequest = fetch(
-          weatherUrl.toString(),
-        );
+        // =================================
+        // API REQUESTS
+        // =================================
+
+        const weatherRequest =
+          fetch(
+            weatherUrl.toString(),
+          );
 
         const locationRequest:
           Promise<Response | null> =
@@ -493,11 +582,13 @@ export function useLocalWeather() {
             ? Promise.resolve(null)
             : fetch(
                 locationUrl.toString(),
-              );
+              ).catch(() => null);
 
-        const auroraRequest = fetch(
-          `/api/aurora?latitude=${latitude}&longitude=${longitude}`,
-        );
+        const auroraRequest:
+          Promise<Response | null> =
+          fetch(
+            `/api/aurora?latitude=${latitude}&longitude=${longitude}`,
+          ).catch(() => null);
 
         const [
           weatherResponse,
@@ -509,6 +600,10 @@ export function useLocalWeather() {
           auroraRequest,
         ]);
 
+        // =================================
+        // WEATHER RESULT
+        // =================================
+
         const weatherResult =
           await readJsonSafely<OpenMeteoResponse>(
             weatherResponse,
@@ -516,19 +611,20 @@ export function useLocalWeather() {
 
         if (!weatherResult) {
           throw new Error(
-            "Unable to read the weather response.",
+            "Unable to read weather.",
           );
         }
 
-        /*
-         * Calgary remains the fallback if the
-         * city-name API fails.
-         */
+        // =================================
+        // LOCATION RESULT
+        // =================================
+
         let city =
           CALGARY_LOCATION.city;
 
         let countryCode =
-          CALGARY_LOCATION.countryCode;
+          CALGARY_LOCATION
+            .countryCode;
 
         const locationResult =
           await readJsonSafely<LocationResponse>(
@@ -544,14 +640,14 @@ export function useLocalWeather() {
             "Your location";
 
           countryCode =
-            locationResult.countryCode ||
-            "";
+            locationResult
+              .countryCode || "";
         }
 
-        /*
-         * A NOAA failure must never prevent
-         * regular weather from loading.
-         */
+        // =================================
+        // AURORA RESULT
+        // =================================
+
         let auroraProbability = 0;
 
         const auroraResult =
@@ -561,9 +657,13 @@ export function useLocalWeather() {
 
         if (auroraResult) {
           auroraProbability =
-            auroraResult.probability ??
-            0;
+            auroraResult
+              .probability ?? 0;
         }
+
+        // =================================
+        // CREATE WEATHER DATA
+        // =================================
 
         const current =
           weatherResult.current;
@@ -612,7 +712,8 @@ export function useLocalWeather() {
 
         setWeather({
           temperature:
-            current.temperature_2m,
+            current
+              .temperature_2m,
 
           apparentTemperature:
             current
@@ -660,10 +761,6 @@ export function useLocalWeather() {
           nextScene,
         );
       } catch {
-        /*
-         * Keep the previous/default scene if one
-         * of the weather services is unavailable.
-         */
         setError(
           "Weather is temporarily unavailable.",
         );
@@ -672,17 +769,27 @@ export function useLocalWeather() {
       }
     }, []);
 
+  // =================================
+  // INITIAL LOAD AND REFRESH
+  // =================================
+
   useEffect(() => {
-    loadWeather();
+    /*
+     * Weather loading intentionally begins
+     * when this component is mounted.
+     */
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadWeather();
 
     /*
-     * Refresh every ten minutes.
+     * Refresh weather every ten minutes.
      */
+
     const interval =
-      window.setInterval(
-        loadWeather,
-        10 * 60 * 1000,
-      );
+      window.setInterval(() => {
+        void loadWeather();
+      }, 10 * 60 * 1000);
 
     return () => {
       window.clearInterval(
@@ -690,6 +797,10 @@ export function useLocalWeather() {
       );
     };
   }, [loadWeather]);
+
+  // =================================
+  // HOOK RESULT
+  // =================================
 
   return {
     weather,

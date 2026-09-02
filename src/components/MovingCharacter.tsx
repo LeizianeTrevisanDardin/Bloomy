@@ -10,8 +10,8 @@ type Direction = "idle" | "left" | "right";
 // =================================
 
 // Horizontal limits for the character
-const LEFT_X = 30;
-const RIGHT_X = 72;
+const LEFT_X = 39;
+const RIGHT_X = 76;
 
 // Character walking speed
 const WALK_SPEED = 0.12;
@@ -30,7 +30,7 @@ const DOG_WALK_SPEED = 0.14;
 const DOG_DELAY = 450;
 
 // Distance behind the character when walking right
-const DOG_RIGHT_GAP = 5;
+const DOG_RIGHT_GAP = 10;
 
 // When walking left, the dog stops this distance
 // to the left of the character
@@ -246,7 +246,7 @@ export default function MovingCharacter() {
       {/* ================================= */}
 
       <div
-        className="absolute bottom-[12%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10%] sm:scale-[0.85] lg:bottom-[6%] lg:scale-110 2xl:bottom-[4%] 2xl:scale-125"
+        className="absolute bottom-[12%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10%] sm:scale-[0.85] lg:bottom-[6%] lg:scale-110 2xl:bottom-[13%] 2xl:scale-125"
         style={{
           left: `${x}%`,
         }}
@@ -271,7 +271,7 @@ export default function MovingCharacter() {
       {/* ================================= */}
 
       <div
-        className="absolute bottom-[12.5%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10.5%] sm:scale-[0.85] lg:bottom-[6.5%] lg:scale-110 2xl:bottom-[4.5%] 2xl:scale-125"
+        className="absolute bottom-[12.5%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10.5%] sm:scale-[0.85] lg:bottom-[6.5%] lg:scale-110 2xl:bottom-[13%] 2xl:scale-125"
         style={{
           left: `${dogX}%`,
         }}
