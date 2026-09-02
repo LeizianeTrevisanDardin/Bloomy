@@ -59,8 +59,8 @@ export default function HabitsPanel() {
   };
 
   return (
-    <section className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-      <div className="mb-5 flex items-center justify-between">
+    <section className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:p-5">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-purple-300">
             Daily progress
@@ -73,8 +73,7 @@ export default function HabitsPanel() {
 
         <button
           type="button"
-          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300 transition hover:bg-white/10"
-        >
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300 transition hover:bg-white/10 sm:w-auto">
           + Add habit
         </button>
       </div>
@@ -86,13 +85,13 @@ export default function HabitsPanel() {
           return (
             <div
               key={habit.id}
-              className={`group rounded-2xl border p-4 transition ${
+              className={`group rounded-2xl border p-3 transition sm:p-4 ${
                 completed
                   ? "border-emerald-400/20 bg-emerald-400/5"
                   : "border-white/10 bg-black/10 hover:bg-white/5"
               }`}
             >
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start justify-between gap-3 sm:items-center sm:gap-4">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl">
                     {habit.icon}

@@ -4,14 +4,50 @@
 import ClockCard from "@/components/ClockCard";
 import BloomyWorld from "@/components/BloomyWorld";
 import HabitsPanel from "@/components/HabitCard";
+import WeatherCard from "@/components/WeatherCard";
+import { useLocalWeather } from "@/hooks/useLocalWeather";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function DashboardPage() {
+  const {
+    weather,
+    automaticScene,
+    loading,
+    error,
+  } = useLocalWeather();
+
+    const {
+    profile,
+    loading: profileLoading,
+  } = useProfile();
+
+  const currentLevel =
+    profile?.level ?? 1;
+
+  const currentXP =
+    profile?.xp ?? 0;
+
+  const xpGoal =
+    currentLevel * 100;
+
+  const xpProgress =
+    Math.min(
+      100,
+      (currentXP / xpGoal) * 100,
+    );
+
+  const displayName =
+    profileLoading
+      ? "Loading..."
+      : profile?.display_name ||
+        "Bloomy User";
+
   return (
     <div className="min-h-screen bg-[#0c0c0f] text-white">
       <div className="flex min-h-screen">
         {/* SIDEBAR */}
         
-        <aside className="hidden w-[250px] shrink-0 border-r border-white/[0.06] bg-[#101014] lg:flex lg:flex-col">
+        <aside className="hidden w-[220px] shrink-0 border-r border-white/[0.06] bg-[#101014] lg:flex lg:flex-col xl:w-[240px] 2xl:w-[250px]">
           <div className="flex flex-1 flex-col p-5">
             {/* PROFILE */}
             <div className="flex items-center gap-3">
@@ -21,11 +57,11 @@ export default function DashboardPage() {
 
               <div>
                 <p className="font-semibold text-zinc-100">
-                  Leiziane
+                  {displayName}
                 </p>
 
                 <p className="mt-1 text-xs text-purple-300">
-                  Level 23
+                  Level {currentLevel}
                 </p>
               </div>
             </div>
@@ -38,13 +74,19 @@ export default function DashboardPage() {
                 </span>
 
                 <span className="text-zinc-300">
-                  1,240 / 2,000
+                  {currentXP.toLocaleString()} /{" "}
+                  {xpGoal.toLocaleString()}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full w-[62%] rounded-full bg-gradient-to-r from-purple-600 to-purple-400" />
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-[width] duration-500"
+                    style={{
+                      width: `${xpProgress}%`,
+                    }}
+                  />
                 </div>
 
                 <span className="text-lg">
@@ -120,45 +162,24 @@ export default function DashboardPage() {
 
         {/* MAIN */}
         <main className="min-w-0 flex-1">
-          <div className="mx-auto w-full max-w-[1500px] p-3 md:p-5">
+          <div className="mx-auto w-full max-w-[1800px] px-2 pb-24 pt-2 sm:px-3 sm:pt-3 md:px-4 lg:pb-5 xl:px-5 2xl:px-6">
             <div className="space-y-3">
               {/* BLOOMY WORLD */}
               <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
-                <BloomyWorld />
+                <BloomyWorld automaticScene={automaticScene} />
 
                
                 {/* CLOCK */}
 
                     <ClockCard />
 
-                {/* WEATHER */}
-                <div className="absolute right-4 top-[74px] z-40 hidden w-[185px] rounded-2xl border border-white/10 bg-black/60 p-4 shadow-xl backdrop-blur-lx md:block">
-                  <div className="flex items-start gap-3">
-                    <span className="text-4xl">
-                      🌧️
-                    </span>
-
-                    <div>
-                      <p className="text-2xl font-semibold">
-                        18°C
-                      </p>
-
-                      <p className="text-xs text-zinc-300">
-                        Rainy
-                      </p>
-
-                      <p className="text-xs text-zinc-400">
-                        Calgary, CA
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="my-3 h-px bg-white/10" />
-
-                  <p className="text-xs leading-5 text-zinc-300">
-                    Today&apos;s weather brings calm and focus.
-                  </p>
-                </div>
+                {/* REAL WEATHER */}
+                <WeatherCard
+                  weather={weather}
+                  loading={loading}
+                  error={error}
+                  automaticScene={automaticScene}
+                />
 
                 {/* WORLD STATUS */}
                 <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
@@ -166,21 +187,25 @@ export default function DashboardPage() {
                     <WorldStat
                       icon="⚡"
                       label="Energy"
-                      value="78/100"
+                      value={`${profile?.energy ?? 100}/100`}
                       color="bg-amber-400"
-                      progress="78%"
+                      progress={`${profile?.energy ?? 100}%`}
                     />
 
                     <WorldStat
                       icon="🪙"
                       label="Coins"
-                      value="320"
+                      value={String(
+                        profile?.coins ?? 0,
+                      )}
                     />
 
                     <WorldStat
                       icon="💎"
                       label="Gems"
-                      value="15"
+                      value={String(
+                        profile?.gems ?? 0,
+                      )}
                     />
                   </div>
 
@@ -194,7 +219,7 @@ export default function DashboardPage() {
               </section>
 
               {/* HABITS / TASKS / GOALS */}
-              <section className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-3">
+              <section className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-3">
                 <div className="h-full min-w-0">
                   <HabitsPanel />
                 </div>
@@ -203,13 +228,13 @@ export default function DashboardPage() {
                   <TasksPanel />
                 </div>
 
-                <div className="h-full min-w-0">
+                <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
                   <GoalsPanel />
                 </div>
               </section>
 
               {/* CALENDAR / STATISTICS */}
-              <section className="grid grid-cols-1 gap-3 xl:grid-cols-[0.8fr_2fr]">
+              <section className="grid grid-cols-1 gap-3 2xl:grid-cols-[0.8fr_2fr]">
                 <CalendarPanel />
 
                 <StatisticsPanel />
@@ -218,7 +243,40 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
+
+      {/* MOBILE NAVIGATION */}
+      <nav className="fixed inset-x-0 bottom-0 z-[100] grid grid-cols-5 border-t border-white/10 bg-[#101014]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
+        <MobileNavButton icon="🏠" label="Home" active />
+        <MobileNavButton icon="🌱" label="Habits" />
+        <MobileNavButton icon="☑️" label="Tasks" />
+        <MobileNavButton icon="🎯" label="Goals" />
+        <MobileNavButton icon="⚙️" label="Settings" />
+      </nav>
     </div>
+  );
+}
+
+function MobileNavButton({
+  icon,
+  label,
+  active = false,
+}: {
+  icon: string;
+  label: string;
+  active?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] transition ${
+        active
+          ? "bg-purple-500/15 text-purple-200"
+          : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
+      }`}
+    >
+      <span className="text-base">{icon}</span>
+      <span className="max-w-full truncate">{label}</span>
+    </button>
   );
 }
 
