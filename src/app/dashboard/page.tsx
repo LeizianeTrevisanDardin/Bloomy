@@ -7,6 +7,7 @@ import HabitsPanel from "@/components/HabitCard";
 import WeatherCard from "@/components/WeatherCard";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
 import { useProfile } from "@/hooks/useProfiles";
+import TasksPanel from "@/components/TasksPanel";
 
 export default function DashboardPage() {
   const {
@@ -19,6 +20,7 @@ export default function DashboardPage() {
     const {
     profile,
     loading: profileLoading,
+    refreshProfile,
   } = useProfile();
 
   const currentLevel =
@@ -221,11 +223,19 @@ export default function DashboardPage() {
               {/* HABITS / TASKS / GOALS */}
               <section className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-3">
                 <div className="h-full min-w-0">
-                  <HabitsPanel />
+                  <HabitsPanel
+                    onRewardsUpdated={
+                      refreshProfile
+                    }
+                  />
                 </div>
 
                 <div className="h-full min-w-0">
-                  <TasksPanel />
+                  <TasksPanel
+                    onRewardsUpdated={
+                      refreshProfile
+                    }
+                  />
                 </div>
 
                 <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
@@ -349,105 +359,6 @@ function MobileNavButton({
       </div>
     );
   }
-
-function TasksPanel() {
-  return (
-    <div className="min-h-[300px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-100">
-          📋 Today&apos;s Tasks
-        </h2>
-
-        <span className="text-xs text-zinc-500">
-          2 of 4
-        </span>
-      </div>
-
-      <div className="mt-4 space-y-2">
-        <TaskRow
-          title="Study Next.js"
-          description="1 hour of study"
-          reward="+50 XP"
-          completed
-        />
-
-        <TaskRow
-          title="Work on CareerFlow"
-          description="Implement a new feature"
-          reward="+80 XP"
-          completed
-        />
-
-        <TaskRow
-          title="Record YouTube video"
-          description="Edit and publish"
-          reward="+60 XP"
-        />
-
-        <TaskRow
-          title="Read for 20 minutes"
-          description="Book: Atomic Habits"
-          reward="+30 XP"
-        />
-      </div>
-
-      <button
-        type="button"
-        className="mt-4 w-full rounded-xl bg-white/[0.04] py-3 text-sm text-purple-300 transition hover:bg-white/[0.08]"
-      >
-        View all
-      </button>
-    </div>
-  );
-}
-
-function TaskRow({
-  title,
-  description,
-  reward,
-  completed = false,
-}: {
-  title: string;
-  description: string;
-  reward: string;
-  completed?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-black/20 p-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <div
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${
-            completed
-              ? "bg-emerald-500 text-xs font-bold text-black"
-              : "border border-white/25"
-          }`}
-        >
-          {completed ? "✓" : ""}
-        </div>
-
-        <div className="min-w-0">
-          <p
-            className={`truncate text-sm ${
-              completed
-                ? "text-zinc-400 line-through"
-                : "text-zinc-200"
-            }`}
-          >
-            {title}
-          </p>
-
-          <p className="mt-0.5 truncate text-xs text-zinc-500">
-            {description}
-          </p>
-        </div>
-      </div>
-
-      <span className="shrink-0 text-xs font-medium text-amber-300">
-        {reward}
-      </span>
-    </div>
-  );
-}
 
 function GoalsPanel() {
   return (

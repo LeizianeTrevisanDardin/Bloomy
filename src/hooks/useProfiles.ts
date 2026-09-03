@@ -3,9 +3,9 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
-
 import {
   createClient,
 } from "@/lib/supabase/client";
@@ -27,71 +27,114 @@ export function useProfile() {
 
   const [error, setError] =
     useState<string | null>(null);
+    
+    const profileRequestId =
+  useRef(0);
 
   const loadProfile =
-    useCallback(async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  useCallback(async () => {
+    const requestId =
+      profileRequestId.current +
+      1;
 
-        const {
-          data: userData,
-          error: userError,
-        } = await supabase.auth.getUser();
+    profileRequestId.current =
+      requestId;
 
-        if (
-          userError ||
-          !userData.user
-        ) {
-          setProfile(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-          setError(
-            "User session not found.",
-          );
+      const {
+        data: userData,
+        error: userError,
+      } =
+        await supabase.auth.getUser();
 
-          return;
-        }
+      /*
+       * Ignore an older request if another
+       * profile refresh has already started.
+       */
+      if (
+        requestId !==
+        profileRequestId.current
+      ) {
+        return;
+      }
 
-        const {
-          data: profileData,
-          error: profileError,
-        } = await supabase
-          .from("profiles")
-          .select(
-            `
-              id,
-              display_name,
-              avatar_url,
-              level,
-              xp,
-              coins,
-              gems,
-              energy,
-              created_at,
-              updated_at
-            `,
-          )
-          .eq(
-            "id",
-            userData.user.id,
-          )
-          .single();
+      if (
+        userError ||
+        !userData.user
+      ) {
+        setProfile(null);
 
-        if (profileError) {
-          throw profileError;
-        }
-
-        setProfile(
-          profileData as Profile,
+        setError(
+          "User session not found.",
         );
-      } catch {
+
+        return;
+      }
+
+      const {
+        data: profileData,
+        error: profileError,
+      } = await supabase
+        .from("profiles")
+        .select(
+          `
+            id,
+            display_name,
+            avatar_url,
+            level,
+            xp,
+            coins,
+            gems,
+            energy,
+            created_at,
+            updated_at
+          `,
+        )
+        .eq(
+          "id",
+          userData.user.id,
+        )
+        .single();
+
+      /*
+       * Prevent an older response from
+       * replacing newer XP and coins.
+       */
+      if (
+        requestId !==
+        profileRequestId.current
+      ) {
+        return;
+      }
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      setProfile(
+        profileData as Profile,
+      );
+    } catch {
+      if (
+        requestId ===
+        profileRequestId.current
+      ) {
         setError(
           "Unable to load the profile.",
         );
-      } finally {
+      }
+    } finally {
+      if (
+        requestId ===
+        profileRequestId.current
+      ) {
         setLoading(false);
       }
-    }, [supabase]);
+    }
+  }, [supabase]);
 
   useEffect(() => {
   const timeoutId =
