@@ -246,7 +246,7 @@ export default function MovingCharacter() {
       {/* ================================= */}
 
       <div
-        className="absolute bottom-[12%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10%] sm:scale-[0.85] lg:bottom-[6%] lg:scale-110 2xl:bottom-[13%] 2xl:scale-125"
+        className="absolute bottom-[12%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10%] sm:scale-[0.85] lg:bottom-[6%] lg:scale-110 2xl:bottom-[14%] 2xl:scale-125"
         style={{
           left: `${x}%`,
         }}
@@ -271,7 +271,7 @@ export default function MovingCharacter() {
       {/* ================================= */}
 
       <div
-        className="absolute bottom-[12.5%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10.5%] sm:scale-[0.85] lg:bottom-[6.5%] lg:scale-110 2xl:bottom-[13%] 2xl:scale-125"
+        className="absolute bottom-[12.5%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10.5%] sm:scale-[0.85] lg:bottom-[6.5%] lg:scale-110 2xl:bottom-[14%] 2xl:scale-125"
         style={{
           left: `${dogX}%`,
         }}

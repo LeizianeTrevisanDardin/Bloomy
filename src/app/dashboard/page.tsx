@@ -1,6 +1,5 @@
 "use client";
 
-
 import ClockCard from "@/components/ClockCard";
 import BloomyWorld from "@/components/BloomyWorld";
 import HabitsPanel from "@/components/HabitCard";
@@ -8,6 +7,7 @@ import WeatherCard from "@/components/WeatherCard";
 import { useLocalWeather } from "@/hooks/useLocalWeather";
 import { useProfile } from "@/hooks/useProfiles";
 import TasksPanel from "@/components/TasksPanel";
+import GoalsPanel from "@/components/GoalsPanel";
 
 export default function DashboardPage() {
   const {
@@ -17,7 +17,7 @@ export default function DashboardPage() {
     error,
   } = useLocalWeather();
 
-    const {
+  const {
     profile,
     loading: profileLoading,
     refreshProfile,
@@ -170,10 +170,8 @@ export default function DashboardPage() {
               <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
                 <BloomyWorld automaticScene={automaticScene} />
 
-               
                 {/* CLOCK */}
-
-                    <ClockCard />
+                <ClockCard />
 
                 {/* REAL WEATHER */}
                 <WeatherCard
@@ -239,7 +237,11 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
-                  <GoalsPanel />
+                  <GoalsPanel
+                    onRewardsUpdated={
+                      refreshProfile
+                    }
+                  />
                 </div>
               </section>
 
@@ -290,7 +292,7 @@ function MobileNavButton({
   );
 }
 
-  function SidebarButton({
+function SidebarButton({
     icon,
     label,
     active = false,
@@ -317,7 +319,7 @@ function MobileNavButton({
     );
   }
 
-  function WorldStat({
+function WorldStat({
     icon,
     label,
     value,
@@ -360,74 +362,6 @@ function MobileNavButton({
     );
   }
 
-function GoalsPanel() {
-  return (
-    <div className="min-h-[300px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-100">
-          🎯 Goals
-        </h2>
-
-        <span className="text-xs text-zinc-500">
-          3 active
-        </span>
-      </div>
-
-      <div className="mt-4 space-y-3">
-        <Goal
-          title="Launch CareerFlow"
-          progress={75}
-        />
-
-        <Goal
-          title="Get a job in Tech"
-          progress={60}
-        />
-
-        <Goal
-          title="Save $5,000"
-          progress={40}
-        />
-      </div>
-
-      <button
-        type="button"
-        className="mt-4 w-full rounded-xl bg-white/[0.04] py-3 text-sm text-purple-300 transition hover:bg-white/[0.08]"
-      >
-        View all
-      </button>
-    </div>
-  );
-}
-
-function Goal({
-  title,
-  progress,
-}: {
-  title: string;
-  progress: number;
-}) {
-  return (
-    <div className="rounded-xl bg-black/20 p-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-sm text-zinc-200">
-          {title}
-        </p>
-
-        <span className="text-sm font-medium text-zinc-300">
-          {progress}%
-        </span>
-      </div>
-
-      <div className="h-2 overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-400"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 function CalendarPanel() {
   const days = [
