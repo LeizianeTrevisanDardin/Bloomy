@@ -8,6 +8,7 @@ import { useLocalWeather } from "@/hooks/useLocalWeather";
 import { useProfile } from "@/hooks/useProfiles";
 import TasksPanel from "@/components/TasksPanel";
 import GoalsPanel from "@/components/GoalsPanel";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const {
@@ -102,42 +103,50 @@ export default function DashboardPage() {
               <SidebarButton
                 icon="🏠"
                 label="Overview"
+                href="/dashboard"
                 active
               />
 
               <SidebarButton
                 icon="🌱"
                 label="Habits"
+                href="/dashboard/habits"
               />
 
               <SidebarButton
                 icon="☑️"
                 label="Tasks"
+                href="/dashboard/tasks"
               />
 
               <SidebarButton
                 icon="🎯"
                 label="Goals"
+                href="/dashboard/goals"
               />
 
               <SidebarButton
                 icon="🗓️"
                 label="Calendar"
+                href="/dashboard/calendar"
               />
 
               <SidebarButton
                 icon="📊"
                 label="Statistics"
+                href="/dashboard/statistics"
               />
 
               <SidebarButton
                 icon="🛍️"
                 label="Shop"
+                href="/dashboard/shop"
               />
 
               <SidebarButton
                 icon="⚙️"
                 label="Settings"
+                href="/dashboard/settings"
               />
             </nav>
 
@@ -293,31 +302,33 @@ function MobileNavButton({
 }
 
 function SidebarButton({
-    icon,
-    label,
-    active = false,
-  }: {
-    icon: string;
-    label: string;
-    active?: boolean;
-  }) {
-    return (
-      <button
-        type="button"
-        className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
-          active
-            ? "bg-purple-500/15 text-purple-200"
-            : "hover:bg-white/[0.05] hover:text-white"
-        }`}
-      >
-        <span className="flex w-6 justify-center text-base">
-          {icon}
-        </span>
+  icon,
+  label,
+  href,
+  active = false,
+}: {
+  icon: string;
+  label: string;
+  href: string;
+  active?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition ${
+        active
+          ? "bg-purple-500/15 text-purple-200"
+          : "hover:bg-white/[0.05] hover:text-white"
+      }`}
+    >
+      <span className="flex w-6 justify-center text-base">
+        {icon}
+      </span>
 
-        <span>{label}</span>
-      </button>
-    );
-  }
+      <span>{label}</span>
+    </Link>
+  );
+}
 
 function WorldStat({
     icon,

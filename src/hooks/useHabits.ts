@@ -17,6 +17,14 @@ import type {
   HabitUncompletionResult,
 } from "@/types/habits";
 
+export type UpdateHabitInput = {
+  title: string;
+  description: string;
+  icon: string;
+  frequency: string;
+  targetPerWeek: number;
+};
+
 type HabitDatabaseRow = {
   id: string;
   user_id: string;
@@ -73,6 +81,21 @@ export function useHabits() {
   ] = useState<string | null>(
     null,
   );
+
+  const [
+    updatingHabitId,
+    setUpdatingHabitId,
+  ] = useState<string | null>(null);
+
+  const [
+    archivingHabitId,
+    setArchivingHabitId,
+  ] = useState<string | null>(null);
+
+  const [
+    deletingHabitId,
+    setDeletingHabitId,
+  ] = useState<string | null>(null);
 
   // =================================
   // CALGARY LOCAL DATE
@@ -464,6 +487,191 @@ export function useHabits() {
     );
 
   // =================================
+  // UPDATE HABIT
+  // =================================
+
+  const updateHabit =
+    useCallback(
+      async (
+        habitId: string,
+        input: UpdateHabitInput,
+      ): Promise<boolean> => {
+        try {
+          setUpdatingHabitId(habitId);
+          setError(null);
+
+          const {
+            data,
+            error: updateError,
+          } = await supabase.rpc(
+            "update_habit",
+            {
+              p_habit_id: habitId,
+              p_title: input.title.trim(),
+              p_description:
+                input.description.trim(),
+              p_icon:
+                input.icon || "🌱",
+              p_frequency:
+                input.frequency,
+              p_target_per_week:
+                input.targetPerWeek,
+            },
+          );
+
+          if (updateError) {
+            throw updateError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Habit was not updated.",
+            );
+          }
+
+          setHabits((currentHabits) =>
+            currentHabits.map((habit) =>
+              habit.id === habitId
+                ? {
+                    ...habit,
+                    title: input.title.trim(),
+                    description:
+                      input.description.trim() ||
+                      null,
+                    icon:
+                      input.icon || "🌱",
+                    frequency:
+                      input.frequency,
+                    target_per_week:
+                      input.targetPerWeek,
+                  }
+                : habit,
+            ),
+          );
+
+          return true;
+        } catch {
+          setError(
+            "Unable to update habit.",
+          );
+
+          return false;
+        } finally {
+          setUpdatingHabitId(null);
+        }
+      },
+      [supabase],
+    );
+
+  // =================================
+  // ARCHIVE HABIT
+  // =================================
+
+  const archiveHabit =
+    useCallback(
+      async (
+        habitId: string,
+      ): Promise<boolean> => {
+        try {
+          setArchivingHabitId(habitId);
+          setError(null);
+
+          const {
+            data,
+            error: archiveError,
+          } = await supabase.rpc(
+            "archive_habit",
+            {
+              p_habit_id: habitId,
+            },
+          );
+
+          if (archiveError) {
+            throw archiveError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Habit was not archived.",
+            );
+          }
+
+          setHabits((currentHabits) =>
+            currentHabits.filter(
+              (habit) =>
+                habit.id !== habitId,
+            ),
+          );
+
+          return true;
+        } catch {
+          setError(
+            "Unable to archive habit.",
+          );
+
+          return false;
+        } finally {
+          setArchivingHabitId(null);
+        }
+      },
+      [supabase],
+    );
+
+  // =================================
+  // DELETE HABIT
+  // =================================
+
+  const deleteHabit =
+    useCallback(
+      async (
+        habitId: string,
+      ): Promise<boolean> => {
+        try {
+          setDeletingHabitId(habitId);
+          setError(null);
+
+          const {
+            data,
+            error: deleteError,
+          } = await supabase.rpc(
+            "delete_habit",
+            {
+              p_habit_id: habitId,
+            },
+          );
+
+          if (deleteError) {
+            throw deleteError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Habit was not deleted.",
+            );
+          }
+
+          setHabits((currentHabits) =>
+            currentHabits.filter(
+              (habit) =>
+                habit.id !== habitId,
+            ),
+          );
+
+          return true;
+        } catch {
+          setError(
+            "Unable to delete habit.",
+          );
+
+          return false;
+        } finally {
+          setDeletingHabitId(null);
+        }
+      },
+      [supabase],
+    );
+
+  // =================================
   // AUTOMATIC INITIAL LOAD
   // =================================
 
@@ -483,9 +691,15 @@ export function useHabits() {
     creatingHabit,
     completingHabitId,
     uncompletingHabitId,
+    updatingHabitId,
+    archivingHabitId,
+    deletingHabitId,
     createHabit,
     completeHabit,
     uncompleteHabit,
+    updateHabit,
+    archiveHabit,
+    deleteHabit,
     refreshHabits:
       loadHabits,
   };
