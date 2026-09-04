@@ -10,13 +10,22 @@ import { useProfile } from "@/hooks/useProfiles";
 import TasksPanel from "@/components/TasksPanel";
 import GoalsPanel from "@/components/GoalsPanel";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTasks } from "@/hooks/useTasks";
 import { useGoals } from "@/hooks/useGoals";
+import { createClient } from "@/lib/supabase/client";
 import {
   useStatistics,
 } from "@/hooks/useStatistics";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [supabase] = useState(
+    () => createClient(),
+  );
+  const [signingOut, setSigningOut] =
+    useState(false);
+
   const {
     weather,
     automaticScene,
@@ -56,6 +65,27 @@ export default function DashboardPage() {
   loading: statisticsLoading,
   error: statisticsError,
 } = useStatistics();
+
+  const handleSignOut = async () => {
+    try {
+      setSigningOut(true);
+
+      const { error: signOutError } =
+        await supabase.auth.signOut();
+
+      if (signOutError) {
+        throw signOutError;
+      }
+
+      router.replace("/login");
+      router.refresh();
+    } catch {
+      setSigningOut(false);
+      window.alert(
+        "Unable to sign out. Please try again.",
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0c0c0f] text-white">
@@ -166,6 +196,26 @@ export default function DashboardPage() {
                 href="/dashboard/settings"
               />
             </nav>
+
+            {/* LOG OUT */}
+            <div className="mt-4 border-t border-white/[0.06] pt-4">
+              <button
+                type="button"
+                onClick={() => void handleSignOut()}
+                disabled={signingOut}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-zinc-400 transition hover:bg-red-500/10 hover:text-red-200 disabled:cursor-wait disabled:opacity-50"
+              >
+                <span className="flex w-6 justify-center text-base">
+                  ↪️
+                </span>
+
+                <span>
+                  {signingOut
+                    ? "Signing out..."
+                    : "Log out"}
+                </span>
+              </button>
+            </div>
 
             {/* REMINDER */}
             <div className="mt-auto rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-purple-500/[0.05] p-4">
