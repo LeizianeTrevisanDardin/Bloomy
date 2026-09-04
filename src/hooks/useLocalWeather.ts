@@ -70,8 +70,8 @@ const CALGARY_LOCATION = {
 
 const WEATHER_CACHE_KEY = "bloomy-weather-v2";
 const LOCATION_CACHE_KEY = "bloomy-location-v1";
-const WEATHER_CACHE_TIME = 10 * 60 * 1000;
-const LOCATION_CACHE_TIME = 60 * 60 * 1000;
+const WEATHER_CACHE_TIME = 5 * 60 * 1000;
+const LOCATION_CACHE_TIME = 5 * 60 * 1000;
 
 function readStorage<T>(key: string): T | null {
   try {
@@ -149,9 +149,9 @@ function getBrowserLocation(): Promise<Coordinates> {
         resolve({ ...CALGARY_LOCATION, usedFallback: true });
       },
       {
-        enableHighAccuracy: false,
-        timeout: 3500,
-        maximumAge: LOCATION_CACHE_TIME,
+        enableHighAccuracy: true,
+        timeout: 15_000,
+        maximumAge: 5 * 60 * 1000,
       },
     );
   });
