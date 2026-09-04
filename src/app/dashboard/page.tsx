@@ -308,13 +308,14 @@ export default function DashboardPage() {
                   {/* WORLD STATUS */}
                   <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
                     <div className="flex min-w-0 gap-2">
-                      <WorldStat
+                      {/* for future energy implmentation, we will keep this code here for now */}
+                      {/* <WorldStat
                         icon="⚡"
                         label="Energy"
                         value={`${profile?.energy ?? 100}/100`}
                         color="bg-amber-400"
                         progress={`${profile?.energy ?? 100}%`}
-                      />
+                      /> */}
 
                       <WorldStat
                         icon="🪙"

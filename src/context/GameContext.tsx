@@ -14,8 +14,8 @@ type GameContextType = {
   xp: number;
   xpToNextLevel: number;
 
-  energy: number;
-  maxEnergy: number;
+  // energy: number;
+  // maxEnergy: number;
 
   coins: number;
   gems: number;
@@ -24,8 +24,8 @@ type GameContextType = {
   addCoins: (amount: number) => void;
   addGems: (amount: number) => void;
 
-  spendEnergy: (amount: number) => void;
-  restoreEnergy: (amount: number) => void;
+  // spendEnergy: (amount: number) => void;
+  // restoreEnergy: (amount: number) => void;
 };
 
 const GameContext =
@@ -43,8 +43,8 @@ export function GameProvider({
   const [level, setLevel] = useState(1);
   const [xp, setXp] = useState(0);
 
-  const [energy, setEnergy] = useState(100);
-  const maxEnergy = 100;
+  // const [energy, setEnergy] = useState(100);
+  // const maxEnergy = 100;
 
   const [coins, setCoins] = useState(0);
   const [gems, setGems] = useState(0);
@@ -108,27 +108,27 @@ export function GameProvider({
   // ENERGY
   // ============================
 
-  const spendEnergy = (
-    amount: number
-  ) => {
-    setEnergy((current) => {
-      return Math.max(
-        0,
-        current - amount
-      );
-    });
-  };
+  // const spendEnergy = (
+  //   amount: number
+  // ) => {
+  //   setEnergy((current) => {
+  //     return Math.max(
+  //       0,
+  //       current - amount
+  //     );
+  //   });
+  // };
 
-  const restoreEnergy = (
-    amount: number
-  ) => {
-    setEnergy((current) => {
-      return Math.min(
-        maxEnergy,
-        current + amount
-      );
-    });
-  };
+  // const restoreEnergy = (
+  //   amount: number
+  // ) => {
+  //   setEnergy((current) => {
+  //     return Math.min(
+  //       maxEnergy,
+  //       current + amount
+  //     );
+  //   });
+  // };
 
   // ============================
   // CONTEXT VALUE
@@ -139,8 +139,8 @@ export function GameProvider({
   xp,
   xpToNextLevel,
 
-  energy,
-  maxEnergy,
+  // energy,
+  // maxEnergy,
 
   coins,
   gems,
@@ -149,8 +149,8 @@ export function GameProvider({
   addCoins,
   addGems,
 
-  spendEnergy,
-  restoreEnergy,
+  // spendEnergy,
+  // restoreEnergy,
 };
 
   return (
