@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -112,6 +113,32 @@ export default function TasksPanel({
     useState<CreateTaskInput>(
       initialForm,
     );
+
+  // Prevent the dashboard behind the modal from moving on mobile.
+  useEffect(() => {
+    if (!showCreateModal) {
+      return;
+    }
+
+    const scrollPosition = window.scrollY;
+    const previousPosition = document.body.style.position;
+    const previousTop = document.body.style.top;
+    const previousWidth = document.body.style.width;
+    const previousOverflow = document.body.style.overflow;
+
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollPosition}px`;
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.position = previousPosition;
+      document.body.style.top = previousTop;
+      document.body.style.width = previousWidth;
+      document.body.style.overflow = previousOverflow;
+      window.scrollTo(0, scrollPosition);
+    };
+  }, [showCreateModal]);
 
   const [
     formError,
@@ -455,7 +482,7 @@ export default function TasksPanel({
       {/* ================================= */}
 
       {showCreateModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[200] flex overflow-x-hidden overflow-y-auto overscroll-contain p-3 sm:items-center sm:justify-center sm:p-4">
           <button
             type="button"
             aria-label="Close add task form"
@@ -467,7 +494,7 @@ export default function TasksPanel({
             role="dialog"
             aria-modal="true"
             aria-labelledby="create-task-title"
-            className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-[#17151d] p-5 shadow-2xl sm:p-6"
+            className="relative z-10 my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-[calc(100vw-1.5rem)] overscroll-contain overflow-x-hidden overflow-y-auto rounded-3xl border border-white/10 bg-[#17151d] p-5 shadow-2xl sm:max-h-[90vh] sm:max-w-lg sm:p-6"
           >
             {/* MODAL HEADER */}
 
@@ -522,7 +549,6 @@ export default function TasksPanel({
                   id="task-title"
                   type="text"
                   required
-                  autoFocus
                   maxLength={120}
                   value={form.title}
                   onChange={(event) => {
@@ -536,7 +562,7 @@ export default function TasksPanel({
                     );
                   }}
                   placeholder="Example: Finish project"
-                  className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-purple-400/40"
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-zinc-600 focus:border-purple-400/40 sm:text-sm"
                 />
               </div>
 
@@ -571,7 +597,7 @@ export default function TasksPanel({
                     );
                   }}
                   placeholder="Add task details..."
-                  className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-purple-400/40"
+                  className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-base text-white outline-none placeholder:text-zinc-600 focus:border-purple-400/40 sm:text-sm"
                 />
               </div>
 
@@ -602,7 +628,7 @@ export default function TasksPanel({
                       }),
                     );
                   }}
-                  className="mt-2 w-full rounded-xl border border-white/10 bg-[#201e26] px-4 py-3 text-sm text-white outline-none focus:border-purple-400/40"
+                  className="mt-2 w-full rounded-xl border border-white/10 bg-[#201e26] px-4 py-3 text-base text-white outline-none focus:border-purple-400/40 sm:text-sm"
                 />
               </div>
 

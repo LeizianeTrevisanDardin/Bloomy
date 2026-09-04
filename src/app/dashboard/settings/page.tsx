@@ -93,6 +93,7 @@ function SettingsContent({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const busy =
     updatingProfile || uploadingAvatar || removingAvatar;
@@ -134,6 +135,28 @@ function SettingsContent({
 
     if (success) {
       setMessage("Your profile photo was removed.");
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      setSigningOut(true);
+      setActionError(null);
+
+      const { error: signOutError } =
+        await supabase.auth.signOut();
+
+      if (signOutError) {
+        throw signOutError;
+      }
+
+      router.replace("/login");
+      router.refresh();
+    } catch {
+      setActionError(
+        "Unable to sign out. Please try again.",
+      );
+      setSigningOut(false);
     }
   };
 
@@ -294,6 +317,36 @@ function SettingsContent({
                 {updatingProfile ? "Saving..." : "Save name"}
               </button>
             </div>
+          </div>
+        </section>
+
+        {/* MOBILE LOG OUT */}
+        <section className="mt-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-7 lg:hidden">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-purple-300">
+            Session
+          </p>
+
+          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">
+                Log out
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-zinc-500">
+                Sign out of your Bloomy account on this device.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              disabled={signingOut}
+              className="h-11 shrink-0 rounded-xl border border-white/10 bg-white/5 px-6 text-sm font-medium text-zinc-200 transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-50"
+            >
+              {signingOut
+                ? "Signing out..."
+                : "Log out"}
+            </button>
           </div>
         </section>
 
