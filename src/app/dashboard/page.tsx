@@ -324,22 +324,24 @@ export default function DashboardPage() {
                           profile?.coins ?? 0,
                         )}
                       />
+                      </div>
 
-                      <WorldStat
+{/* for later implementation of gems, we will keep this code here for now */}
+                      {/* <WorldStat
                         icon="💎"
                         label="Gems"
                         value={String(
                           profile?.gems ?? 0,
                         )}
                       />
-                    </div>
+                    </div> */}
 
-                    <button
+                    {/* <button
                       type="button"
                       className="pointer-events-auto hidden h-[46px] shrink-0 items-center rounded-xl border border-white/8 bg-black/70 px-3 text-xs font-medium text-zinc-100 shadow-lg backdrop-blur-lx transition hover:bg-black/85 sm:flex"
                     >
                       🗺️ Explore the world
-                    </button>
+                    </button> */}
                   </div>
                 </section>
 
