@@ -269,7 +269,7 @@ function getAutomaticScene({
     return "sunset";
   }
 
-  if ([2, 3, 45, 48].includes(weatherCode) || cloudCover >= 70) {
+  if ([2, 3, 45, 48].includes(weatherCode) || cloudCover >= 40) {
     return "cloudy";
   }
 
