@@ -73,7 +73,9 @@ export async function GET(
     const response = await fetch(
       "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json",
       {
-        cache: "no-store",
+        next: {
+          revalidate: 300,
+        },
       },
     );
 

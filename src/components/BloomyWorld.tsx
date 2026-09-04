@@ -206,8 +206,11 @@ export default function BloomyWorld({
         {/* ================================= */}
 
         <img
-          src={`/bloomy/${scene}.png`}
+          key={scene}
+          src={`/bloomy/${scene}.webp`}
           alt={`${scene} Bloomy world`}
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover object-[52%_center] sm:object-center"
         />
 
