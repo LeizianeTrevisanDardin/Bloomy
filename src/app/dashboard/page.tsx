@@ -10,7 +10,10 @@ import { useProfile } from "@/hooks/useProfiles";
 import TasksPanel from "@/components/TasksPanel";
 import GoalsPanel from "@/components/GoalsPanel";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
 import { useTasks } from "@/hooks/useTasks";
 import { useGoals } from "@/hooks/useGoals";
 import { createClient } from "@/lib/supabase/client";
@@ -242,107 +245,179 @@ export default function DashboardPage() {
         <main className="min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[1800px] px-2 pb-24 pt-2 sm:px-3 sm:pt-3 md:px-4 lg:pb-5 xl:px-5 2xl:px-6">
             <div className="space-y-3">
-              {/* BLOOMY WORLD */}
-              <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
-                <BloomyWorld automaticScene={automaticScene} />
+              {/* MOBILE PROFILE */}
+              <section className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#151419] p-3 lg:hidden">
+                <div
+                  className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-purple-400/20 bg-purple-500/10 bg-cover bg-center text-xl"
+                  style={
+                    profile?.avatar_url
+                      ? {
+                          backgroundImage: `url(${profile.avatar_url})`,
+                        }
+                      : undefined
+                  }
+                  role="img"
+                  aria-label="Profile photo"
+                >
+                  {!profile?.avatar_url && "👩🏻"}
+                </div>
 
-                {/* CLOCK */}
-                <ClockCard />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-white">
+                        {displayName}
+                      </p>
 
-                {/* REAL WEATHER */}
-                <WeatherCard
-                  weather={weather}
-                  loading={loading}
-                  error={error}
-                  automaticScene={automaticScene}
-                />
+                      <p className="mt-0.5 text-xs text-purple-300">
+                        Level {currentLevel}
+                      </p>
+                    </div>
 
-                {/* WORLD STATUS */}
-                <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
-                  <div className="flex min-w-0 gap-2">
-                    <WorldStat
-                      icon="⚡"
-                      label="Energy"
-                      value={`${profile?.energy ?? 100}/100`}
-                      color="bg-amber-400"
-                      progress={`${profile?.energy ?? 100}%`}
+                    <span className="shrink-0 text-xs text-zinc-300">
+                      {currentXP.toLocaleString()} /{" "}
+                      {xpGoal.toLocaleString()} XP
+                    </span>
+                  </div>
+
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-[width] duration-500"
+                      style={{
+                        width: `${xpProgress}%`,
+                      }}
                     />
+                  </div>
+                </div>
+              </section>
+                {/* BLOOMY WORLD */}
+                <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
+                  <BloomyWorld automaticScene={automaticScene} />
 
-                    <WorldStat
-                      icon="🪙"
-                      label="Coins"
-                      value={String(
-                        profile?.coins ?? 0,
-                      )}
-                    />
+                  {/* CLOCK */}
+                  <ClockCard />
 
-                    <WorldStat
-                      icon="💎"
-                      label="Gems"
-                      value={String(
-                        profile?.gems ?? 0,
-                      )}
+                  {/* REAL WEATHER */}
+                  <WeatherCard
+                    weather={weather}
+                    loading={loading}
+                    error={error}
+                    automaticScene={automaticScene}
+                  />
+
+                  {/* WORLD STATUS */}
+                  <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
+                    <div className="flex min-w-0 gap-2">
+                      <WorldStat
+                        icon="⚡"
+                        label="Energy"
+                        value={`${profile?.energy ?? 100}/100`}
+                        color="bg-amber-400"
+                        progress={`${profile?.energy ?? 100}%`}
+                      />
+
+                      <WorldStat
+                        icon="🪙"
+                        label="Coins"
+                        value={String(
+                          profile?.coins ?? 0,
+                        )}
+                      />
+
+                      <WorldStat
+                        icon="💎"
+                        label="Gems"
+                        value={String(
+                          profile?.gems ?? 0,
+                        )}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      className="pointer-events-auto hidden h-[46px] shrink-0 items-center rounded-xl border border-white/8 bg-black/70 px-3 text-xs font-medium text-zinc-100 shadow-lg backdrop-blur-lx transition hover:bg-black/85 sm:flex"
+                    >
+                      🗺️ Explore the world
+                    </button>
+                  </div>
+                </section>
+
+                {/* HABITS / TASKS / GOALS */}
+                <section className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                  <div className="h-full min-w-0">
+                    <HabitsPanel
+                      onRewardsUpdated={
+                        refreshProfile
+                      }
                     />
                   </div>
 
-                  <button
-                    type="button"
-                    className="pointer-events-auto hidden h-[46px] shrink-0 items-center rounded-xl border border-white/8 bg-black/70 px-3 text-xs font-medium text-zinc-100 shadow-lg backdrop-blur-lx transition hover:bg-black/85 sm:flex"
-                  >
-                    🗺️ Explore the world
-                  </button>
-                </div>
-              </section>
+                  <div className="h-full min-w-0">
+                    <TasksPanel
+                      onRewardsUpdated={
+                        refreshProfile
+                      }
+                    />
+                  </div>
 
-              {/* HABITS / TASKS / GOALS */}
-              <section className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                <div className="h-full min-w-0">
-                  <HabitsPanel
-                    onRewardsUpdated={
-                      refreshProfile
-                    }
+                  <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
+                    <GoalsPanel
+                      onRewardsUpdated={
+                        refreshProfile
+                      }
+                    />
+                  </div>
+                </section>
+
+                {/* CALENDAR / STATISTICS */}
+                <section className="grid grid-cols-1 gap-3 2xl:grid-cols-[0.8fr_2fr]">
+                  <CalendarPanel />
+
+                  <StatisticsPanel
+                    statistics={statistics}
+                    loading={statisticsLoading}
+                    error={statisticsError}
                   />
-                </div>
-
-                <div className="h-full min-w-0">
-                  <TasksPanel
-                    onRewardsUpdated={
-                      refreshProfile
-                    }
-                  />
-                </div>
-
-                <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
-                  <GoalsPanel
-                    onRewardsUpdated={
-                      refreshProfile
-                    }
-                  />
-                </div>
-              </section>
-
-              {/* CALENDAR / STATISTICS */}
-              <section className="grid grid-cols-1 gap-3 2xl:grid-cols-[0.8fr_2fr]">
-                <CalendarPanel />
-
-                <StatisticsPanel
-                  statistics={statistics}
-                  loading={statisticsLoading}
-                  error={statisticsError}
-                />
-              </section>
+                </section>
+              </div>
             </div>
-          </div>
         </main>
       </div>
 
       {/* MOBILE NAVIGATION */}
-      <nav className="fixed inset-x-0 bottom-0 z-[100] grid grid-cols-5 border-t border-white/10 bg-[#101014]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur-xl lg:hidden">
-        <MobileNavButton icon="🏠" label="Home" active />
-        <MobileNavButton icon="🌱" label="Habits" />
-        <MobileNavButton icon="☑️" label="Tasks" />
-        <MobileNavButton icon="🎯" label="Goals" />
-        <MobileNavButton icon="⚙️" label="Settings" />
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed inset-x-0 bottom-0 z-[100] grid grid-cols-5 border-t border-white/10 bg-[#101014]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl lg:hidden"
+      >
+        <MobileNavButton
+          icon="🏠"
+          label="Home"
+          href="/dashboard"
+        />
+
+        <MobileNavButton
+          icon="🌱"
+          label="Habits"
+          href="/dashboard/habits"
+        />
+
+        <MobileNavButton
+          icon="☑️"
+          label="Tasks"
+          href="/dashboard/tasks"
+        />
+
+        <MobileNavButton
+          icon="🎯"
+          label="Goals"
+          href="/dashboard/goals"
+        />
+
+        <MobileNavButton
+          icon="⚙️"
+          label="Settings"
+          href="/dashboard/settings"
+        />
       </nav>
     </div>
   );
@@ -351,24 +426,37 @@ export default function DashboardPage() {
 function MobileNavButton({
   icon,
   label,
-  active = false,
+  href,
 }: {
   icon: string;
   label: string;
-  active?: boolean;
+  href: string;
 }) {
+  const pathname = usePathname();
+
+  const active =
+    href === "/dashboard"
+      ? pathname === "/dashboard"
+      : pathname.startsWith(href);
+
   return (
-    <button
-      type="button"
-      className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] transition ${
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] transition ${
         active
           ? "bg-purple-500/15 text-purple-200"
           : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
       }`}
     >
-      <span className="text-base">{icon}</span>
-      <span className="max-w-full truncate">{label}</span>
-    </button>
+      <span aria-hidden="true" className="text-base">
+        {icon}
+      </span>
+
+      <span className="max-w-full truncate">
+        {label}
+      </span>
+    </Link>
   );
 }
 
