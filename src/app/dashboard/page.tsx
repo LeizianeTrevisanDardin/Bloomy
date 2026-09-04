@@ -12,6 +12,9 @@ import GoalsPanel from "@/components/GoalsPanel";
 import Link from "next/link";
 import { useTasks } from "@/hooks/useTasks";
 import { useGoals } from "@/hooks/useGoals";
+import {
+  useStatistics,
+} from "@/hooks/useStatistics";
 
 export default function DashboardPage() {
   const {
@@ -48,6 +51,12 @@ export default function DashboardPage() {
       : profile?.display_name ||
         "Bloomy User";
 
+  const {
+  statistics,
+  loading: statisticsLoading,
+  error: statisticsError,
+} = useStatistics();
+
   return (
     <div className="min-h-screen bg-[#0c0c0f] text-white">
       <div className="flex min-h-screen">
@@ -57,8 +66,19 @@ export default function DashboardPage() {
           <div className="flex flex-1 flex-col p-5">
             {/* PROFILE */}
             <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-purple-400/20 bg-purple-500/10 text-2xl">
-                👩🏻
+             <div
+                className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-purple-400/20 bg-purple-500/10 bg-cover bg-center text-2xl"
+                style={
+                  profile?.avatar_url
+                    ? {
+                        backgroundImage: `url(${profile.avatar_url})`,
+                      }
+                    : undefined
+                }
+                role="img"
+                aria-label="Profile photo"
+              >
+                {!profile?.avatar_url && "👩🏻"}
               </div>
 
               <div>
@@ -138,12 +158,6 @@ export default function DashboardPage() {
                 icon="📊"
                 label="Statistics"
                 href="/dashboard/statistics"
-              />
-
-              <SidebarButton
-                icon="🛍️"
-                label="Shop"
-                href="/dashboard/shop"
               />
 
               <SidebarButton
@@ -261,7 +275,11 @@ export default function DashboardPage() {
               <section className="grid grid-cols-1 gap-3 2xl:grid-cols-[0.8fr_2fr]">
                 <CalendarPanel />
 
-                <StatisticsPanel />
+                <StatisticsPanel
+                  statistics={statistics}
+                  loading={statisticsLoading}
+                  error={statisticsError}
+                />
               </section>
             </div>
           </div>
@@ -593,17 +611,76 @@ function getDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function StatisticsPanel() {
-  return (
-    <div className="min-h-[270px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
-      <h2 className="text-lg font-semibold text-zinc-100">
-        📊 Statistics
-      </h2>
+function StatisticsPanel({
+  statistics,
+  loading,
+  error,
+}: {
+  statistics: {
+    level: number;
+    xp: number;
+    currentStreak: number;
+    habitWeeklyRate: number;
+  };
+  loading: boolean;
+  error: string | null;
+}) {
+  if (loading) {
+    return (
+      <div className="min-h-[270px] min-w-0 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
+        <h2 className="text-lg font-semibold text-zinc-100">
+          📊 Statistics
+        </h2>
 
-      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {[0, 1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="h-[145px] animate-pulse rounded-xl bg-black/20 p-4"
+            >
+              <div className="h-7 w-20 rounded bg-white/10" />
+              <div className="mt-6 h-3 w-24 rounded bg-white/10" />
+              <div className="mt-3 h-3 w-14 rounded bg-white/10" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[270px] min-w-0 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
+        <h2 className="text-lg font-semibold text-zinc-100">
+          📊 Statistics
+        </h2>
+
+        <div className="mt-5 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-[270px] min-w-0 overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-zinc-100">
+          📊 Statistics
+        </h2>
+
+        <Link
+          href="/dashboard/statistics"
+          className="text-xs text-purple-300 transition hover:text-purple-200"
+        >
+          View all →
+        </Link>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Stat
           icon="🔥"
-          value="58"
+          value={statistics.currentStreak.toLocaleString()}
           label="Current streak"
           description="days"
           color="text-orange-400"
@@ -611,15 +688,15 @@ function StatisticsPanel() {
 
         <Stat
           icon="⭐"
-          value="1,240"
-          label="Total XP"
+          value={statistics.xp.toLocaleString()}
+          label="Current XP"
           description="earned"
           color="text-amber-300"
         />
 
         <Stat
           icon="🏆"
-          value="23"
+          value={statistics.level.toLocaleString()}
           label="Current level"
           description="keep growing"
           color="text-amber-400"
@@ -627,7 +704,9 @@ function StatisticsPanel() {
 
         <Stat
           icon="🌱"
-          value="87%"
+          value={`${Math.round(
+            statistics.habitWeeklyRate,
+          )}%`}
           label="Habits completed"
           description="this week"
           color="text-emerald-400"
