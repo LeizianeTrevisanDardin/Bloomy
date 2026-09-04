@@ -92,7 +92,7 @@ body {
 }
 
 /* ========================================
-   AURORA WATER REFLECTION ANIMATIONS
+   AURORA WATER REFLECTION ANIMATIONS -  to create a realistic reflection of the aurora in the water color change the opacity 
 ======================================== */
 
 @keyframes auroraWaterColors {
@@ -101,7 +101,7 @@ body {
       0 0,
       0% 50%;
 
-    opacity: 0.5;
+    opacity: 0.4;
   }
 
   50% {
@@ -109,7 +109,7 @@ body {
       8px 12px,
       55% 50%;
 
-    opacity: 0.82;
+    opacity: 0.62;
   }
 
   100% {
@@ -117,7 +117,7 @@ body {
       14px 24px,
       100% 50%;
 
-    opacity: 0.58;
+    opacity: 0.44;
   }
 }
 
@@ -158,7 +158,7 @@ body {
   left: 57%;
   top: 43%;
   width: 14%;
-  height: 13%;
+  height: 8%;
 
   /*
     Creates small horizontal streaks that
@@ -182,36 +182,52 @@ body {
       rgba(127, 77, 255, 0.65) 54%,
       rgba(226, 75, 255, 0.58) 70%,
       rgba(57, 255, 193, 0.42) 84%,
-      transparent 100%
+      transparent 100% 
     );
 
   background-size:
     100% 20px,
     180% 100%;
 
-  mix-blend-mode: screen;
-  filter: blur(1px) saturate(1.45);
-  opacity: 0.75;
+    mix-blend-mode: screen;
 
   /*
-    Softens the edges so no rectangle
-    appears over the lake.
-  */
+   * A stronger blur helps the reflected colors
+   * blend naturally with the original lake.
+   */
+  filter:
+    blur(5px)
+    saturate(1.2);
+
+  opacity: 0.4;
+
+  /*
+   * The mask begins fading close to the center,
+   * preventing visible rectangular edges.
+   */
   -webkit-mask-image: radial-gradient(
     ellipse at center,
-    black 12%,
-    rgba(0, 0, 0, 0.9) 38%,
-    rgba(0, 0, 0, 0.4) 65%,
-    transparent 90%
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.75) 18%,
+    rgba(0, 0, 0, 0.45) 38%,
+    rgba(0, 0, 0, 0.16) 58%,
+    transparent 76%
   );
 
   mask-image: radial-gradient(
     ellipse at center,
-    black 12%,
-    rgba(0, 0, 0, 0.9) 38%,
-    rgba(0, 0, 0, 0.4) 65%,
-    transparent 90%
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.75) 18%,
+    rgba(0, 0, 0, 0.45) 38%,
+    rgba(0, 0, 0, 0.16) 58%,
+    transparent 76%
   );
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
 
   transform-origin: center;
 
