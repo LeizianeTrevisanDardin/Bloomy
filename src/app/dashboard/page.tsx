@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import ClockCard from "@/components/ClockCard";
 import BloomyWorld from "@/components/BloomyWorld";
 import HabitsPanel from "@/components/HabitCard";
@@ -9,6 +10,8 @@ import { useProfile } from "@/hooks/useProfiles";
 import TasksPanel from "@/components/TasksPanel";
 import GoalsPanel from "@/components/GoalsPanel";
 import Link from "next/link";
+import { useTasks } from "@/hooks/useTasks";
+import { useGoals } from "@/hooks/useGoals";
 
 export default function DashboardPage() {
   const {
@@ -375,7 +378,25 @@ function WorldStat({
 
 
 function CalendarPanel() {
-  const days = [
+  const { tasks } = useTasks();
+  const { goals } = useGoals();
+
+  const [visibleMonth, setVisibleMonth] = useState(
+    () => {
+      const today = new Date();
+      return new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1,
+      );
+    },
+  );
+
+  const [selectedDate, setSelectedDate] = useState(
+    () => getDateKey(new Date()),
+  );
+
+  const weekDays = [
     "M",
     "T",
     "W",
@@ -385,16 +406,64 @@ function CalendarPanel() {
     "S",
   ];
 
+  const year = visibleMonth.getFullYear();
+  const month = visibleMonth.getMonth();
+  const daysInMonth = new Date(
+    year,
+    month + 1,
+    0,
+  ).getDate();
+
+  // Converts Sunday-first JavaScript days to Monday-first.
+  const leadingEmptyDays =
+    (new Date(year, month, 1).getDay() + 6) % 7;
+
+  const calendarCells: (number | null)[] = [
+    ...Array.from(
+      { length: leadingEmptyDays },
+      () => null,
+    ),
+    ...Array.from(
+      { length: daysInMonth },
+      (_, index) => index + 1,
+    ),
+  ];
+
+  const todayKey = getDateKey(new Date());
+
+  const taskDates = new Set(
+    tasks
+      .map((task) => task.due_date)
+      .filter((date): date is string => Boolean(date)),
+  );
+
+  const goalDates = new Set(
+    goals
+      .map((goal) => goal.deadline)
+      .filter((date): date is string => Boolean(date)),
+  );
+
+  const changeMonth = (offset: number) => {
+    setVisibleMonth(
+      new Date(year, month + offset, 1),
+    );
+  };
+
   return (
     <div className="min-h-[270px] rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-zinc-100">
+        <Link
+          href="/dashboard/calendar"
+          className="text-lg font-semibold text-zinc-100 transition hover:text-purple-200"
+        >
           🗓️ Calendar
-        </h2>
+        </Link>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={() => changeMonth(-1)}
+            aria-label="Previous month"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/5 hover:text-white"
           >
             ‹
@@ -402,6 +471,8 @@ function CalendarPanel() {
 
           <button
             type="button"
+            onClick={() => changeMonth(1)}
+            aria-label="Next month"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/5 hover:text-white"
           >
             ›
@@ -410,11 +481,14 @@ function CalendarPanel() {
       </div>
 
       <p className="mt-3 text-center text-sm font-medium text-zinc-300">
-        June 2024
+        {new Intl.DateTimeFormat("en-CA", {
+          month: "long",
+          year: "numeric",
+        }).format(visibleMonth)}
       </p>
 
       <div className="mt-4 grid grid-cols-7 gap-2 text-center">
-        {days.map((day, index) => (
+        {weekDays.map((day, index) => (
           <div
             key={`${day}-${index}`}
             className="text-xs text-zinc-500"
@@ -423,50 +497,100 @@ function CalendarPanel() {
           </div>
         ))}
 
-        {Array.from({ length: 28 }).map(
-          (_, index) => {
-            const dayNumber = index + 1;
-            const selected = dayNumber === 9;
-            const hasActivity = [
-              2,
-              9,
-              10,
-              11,
-              12,
-              14,
-              15,
-            ].includes(dayNumber);
-
+        {calendarCells.map((dayNumber, index) => {
+          if (dayNumber === null) {
             return (
               <div
-                key={dayNumber}
-                className="flex flex-col items-center gap-1"
-              >
-                <button
-                  type="button"
-                  className={`flex aspect-square w-full items-center justify-center rounded-lg text-xs transition ${
-                    selected
-                      ? "bg-purple-500 text-white shadow-lg shadow-purple-500/20"
-                      : "text-zinc-300 hover:bg-white/5"
-                  }`}
-                >
-                  {dayNumber}
-                </button>
+                key={`empty-${index}`}
+                aria-hidden="true"
+              />
+            );
+          }
 
+          const date = new Date(
+            year,
+            month,
+            dayNumber,
+          );
+          const dateKey = getDateKey(date);
+          const isToday = dateKey === todayKey;
+          const isSelected = dateKey === selectedDate;
+          const hasTask = taskDates.has(dateKey);
+          const hasGoal = goalDates.has(dateKey);
+
+          return (
+            <div
+              key={dateKey}
+              className="flex flex-col items-center gap-1"
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedDate(dateKey)}
+                aria-label={`Select ${dateKey}`}
+                className={`flex aspect-square w-full items-center justify-center rounded-lg border text-xs transition ${
+                  isSelected
+                    ? "border-purple-400/30 bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+                    : isToday
+                      ? "border-purple-400/40 bg-purple-500/10 text-purple-200"
+                      : "border-transparent text-zinc-300 hover:bg-white/5"
+                }`}
+              >
+                {dayNumber}
+              </button>
+
+              <div className="flex h-1 gap-1">
                 <span
                   className={`h-1 w-1 rounded-full ${
-                    hasActivity
+                    hasTask
+                      ? "bg-sky-400"
+                      : "bg-transparent"
+                  }`}
+                />
+                <span
+                  className={`h-1 w-1 rounded-full ${
+                    hasGoal
                       ? "bg-emerald-400"
                       : "bg-transparent"
                   }`}
                 />
               </div>
-            );
-          },
-        )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3 text-[10px] text-zinc-500">
+        <div className="flex gap-3">
+          <span className="flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+            Task
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            Goal
+          </span>
+        </div>
+
+        <Link
+          href="/dashboard/calendar"
+          className="text-purple-300 transition hover:text-purple-200"
+        >
+          View calendar →
+        </Link>
       </div>
     </div>
   );
+}
+
+function getDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(
+    2,
+    "0",
+  );
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 function StatisticsPanel() {
