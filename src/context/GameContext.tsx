@@ -1,9 +1,10 @@
 "use client";
 
+"use client";
+
 import {
   createContext,
   useContext,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -133,34 +134,24 @@ export function GameProvider({
   // CONTEXT VALUE
   // ============================
 
-  const value = useMemo(
-    () => ({
-      level,
-      xp,
-      xpToNextLevel,
+ const value: GameContextType = {
+  level,
+  xp,
+  xpToNextLevel,
 
-      energy,
-      maxEnergy,
+  energy,
+  maxEnergy,
 
-      coins,
-      gems,
+  coins,
+  gems,
 
-      addXp,
-      addCoins,
-      addGems,
+  addXp,
+  addCoins,
+  addGems,
 
-      spendEnergy,
-      restoreEnergy,
-    }),
-    [
-      level,
-      xp,
-      xpToNextLevel,
-      energy,
-      coins,
-      gems,
-    ]
-  );
+  spendEnergy,
+  restoreEnergy,
+};
 
   return (
     <GameContext.Provider value={value}>
