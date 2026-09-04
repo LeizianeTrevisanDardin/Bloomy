@@ -90,7 +90,6 @@ function SettingsContent({
   );
   const [message, setMessage] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [signingOut, setSigningOut] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -135,23 +134,6 @@ function SettingsContent({
 
     if (success) {
       setMessage("Your profile photo was removed.");
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      setSigningOut(true);
-      setActionError(null);
-
-      const { error: signOutError } = await supabase.auth.signOut();
-
-      if (signOutError) throw signOutError;
-
-      router.replace("/login");
-      router.refresh();
-    } catch {
-      setActionError("Unable to sign out. Please try again.");
-      setSigningOut(false);
     }
   };
 
@@ -312,29 +294,6 @@ function SettingsContent({
                 {updatingProfile ? "Saving..." : "Save name"}
               </button>
             </div>
-          </div>
-        </section>
-
-        <section className="mt-4 rounded-3xl border border-white/10 bg-white/[0.04] p-5 sm:p-7">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-300">
-            Session
-          </p>
-          <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">Sign out</h2>
-              <p className="mt-1 text-sm text-zinc-500">
-                You can sign in again whenever you want.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              disabled={signingOut}
-              className="h-11 rounded-xl border border-white/10 bg-white/5 px-6 text-sm font-medium text-zinc-200 transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-50"
-            >
-              {signingOut ? "Signing out..." : "Log out"}
-            </button>
           </div>
         </section>
 
