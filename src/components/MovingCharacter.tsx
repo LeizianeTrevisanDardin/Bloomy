@@ -18,7 +18,7 @@ const CHARACTER_SPEED = 0.0064;
 const DOG_SPEED = 0.0074;
 
 const IDLE_TIME = 1600;
-const DOG_DELAY = 450;
+const DOG_DELAY = 460;
 const DOG_RIGHT_GAP = 10;
 const DOG_LEFT_GAP = 4;
 
@@ -220,7 +220,7 @@ export default function MovingCharacter() {
             frameWidth={512}
             frameHeight={characterFrameHeight}
             displayWidth={75}
-            speed={direction === "idle" ? 480 : 145}
+            speed={direction === "idle" ? 480 : 155}
           />
         </div>
       </div>
@@ -242,8 +242,12 @@ export default function MovingCharacter() {
             frames={4}
             frameWidth={dogFrameWidth}
             frameHeight={dogFrameHeight}
-            displayWidth={48}
-            speed={dogDirection === "idle" ? 480 : 130}
+            displayWidth={
+                dogDirection === "idle"
+                  ? 48
+                  : 64
+              }
+            speed={dogDirection === "idle" ? 510 : 120}
           />
         </div>
       </div>
