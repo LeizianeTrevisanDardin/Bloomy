@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 type CharacterSpriteProps = {
   src: string;
   frames?: number;
-  frameWidth?: number;
-  frameHeight?: number;
+  frameWidth: number;
+  frameHeight: number;
   displayWidth?: number;
   speed?: number;
   paused?: boolean;
@@ -15,33 +15,64 @@ type CharacterSpriteProps = {
 export default function CharacterSprite({
   src,
   frames = 4,
-  frameWidth = 520,
-  frameHeight = 756,
+  frameWidth,
+  frameHeight,
   displayWidth = 75,
-  speed = 180,
+  speed = 150,
   paused = false,
 }: CharacterSpriteProps) {
   const [frame, setFrame] = useState(0);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || frames <= 1) return;
 
-    const interval = setInterval(() => {
-      setFrame((current) => {
-        return (current + 1) % frames;
-      });
-    }, speed);
+    let animationFrameId = 0;
+    let previousTime = performance.now();
+    let accumulatedTime = 0;
+
+    const animate = (currentTime: number) => {
+      const elapsed = Math.min(
+        currentTime - previousTime,
+        100,
+      );
+
+      previousTime = currentTime;
+      accumulatedTime += elapsed;
+
+      if (accumulatedTime >= speed) {
+        const framesToAdvance = Math.floor(
+          accumulatedTime / speed,
+        );
+
+        accumulatedTime %= speed;
+
+        setFrame(
+          (current) =>
+            (current + framesToAdvance) % frames,
+        );
+      }
+
+      animationFrameId =
+        window.requestAnimationFrame(animate);
+    };
+
+    animationFrameId =
+      window.requestAnimationFrame(animate);
 
     return () => {
-      clearInterval(interval);
+      window.cancelAnimationFrame(
+        animationFrameId,
+      );
     };
-  }, [frames, speed, paused]);
+  }, [frames, paused, speed]);
 
   const displayHeight =
-    (frameHeight / frameWidth) * displayWidth;
+    (frameHeight / frameWidth) *
+    displayWidth;
 
   return (
     <div
+      aria-hidden="true"
       style={{
         position: "relative",
         width: `${displayWidth}px`,
@@ -50,10 +81,13 @@ export default function CharacterSprite({
         flexShrink: 0,
       }}
     >
+      {/* Sprite sheets should remain unoptimized to preserve exact frames. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt=""
         draggable={false}
+        decoding="async"
         style={{
           position: "absolute",
           left: 0,
@@ -61,9 +95,8 @@ export default function CharacterSprite({
           width: `${displayWidth * frames}px`,
           height: `${displayHeight}px`,
           maxWidth: "none",
-          transform: `translateX(-${
-            frame * displayWidth
-          }px)`,
+          transform: `translate3d(-${frame * displayWidth}px, 0, 0)`,
+          willChange: "transform",
           imageRendering: "pixelated",
           pointerEvents: "none",
           userSelect: "none",

@@ -1,142 +1,112 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import CharacterSprite from "./CharacterSprite";
 
 type Direction = "idle" | "left" | "right";
 
-// =================================
-// CHARACTER MOVEMENT SETTINGS
-// =================================
-
-// Horizontal limits for the character
 const LEFT_X = 39;
 const RIGHT_X = 76;
 
-// Character walking speed
-const WALK_SPEED = 0.12;
+// Percentage of the original world width travelled per millisecond.
+const CHARACTER_SPEED = 0.0064;
+const DOG_SPEED = 0.0074;
 
-// Time the character waits before walking again
 const IDLE_TIME = 1600;
-
-// =================================
-// DOG MOVEMENT SETTINGS
-// =================================
-
-// Dog walks slightly faster than the character
-const DOG_WALK_SPEED = 0.14;
-
-// Delay before the dog starts following
 const DOG_DELAY = 450;
-
-// Distance behind the character when walking right
 const DOG_RIGHT_GAP = 10;
-
-// When walking left, the dog stops this distance
-// to the left of the character
 const DOG_LEFT_GAP = 4;
 
 export default function MovingCharacter() {
-  // =================================
-  // CHARACTER STATE
-  // =================================
-
   const [x, setX] = useState(LEFT_X);
-
+  const xRef = useRef(LEFT_X);
   const [direction, setDirection] =
     useState<Direction>("idle");
-
-  // =================================
-  // DOG STATE
-  // =================================
 
   const [dogX, setDogX] = useState(
     LEFT_X - DOG_LEFT_GAP,
   );
-
+  const dogXRef = useRef(
+    LEFT_X - DOG_LEFT_GAP,
+  );
   const [dogDirection, setDogDirection] =
     useState<Direction>("idle");
 
-  // =================================
-  // CHARACTER IDLE
-  // =================================
-
   useEffect(() => {
-    if (direction !== "idle") {
-      return;
-    }
+    if (direction !== "idle") return;
 
     const timeout = window.setTimeout(() => {
-      if (x <= LEFT_X) {
-        setDirection("right");
-      } else {
-        setDirection("left");
-      }
+      setDirection(
+        xRef.current <= LEFT_X
+          ? "right"
+          : "left",
+      );
     }, IDLE_TIME);
 
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [direction, x]);
-
-  // =================================
-  // CHARACTER MOVEMENT
-  // =================================
+  }, [direction]);
 
   useEffect(() => {
-    if (direction === "idle") {
-      return;
-    }
+    if (direction === "idle") return;
 
-    const interval = window.setInterval(() => {
-      setX((current) => {
-        // WALKING RIGHT
+    let animationFrameId = 0;
+    let previousTime = performance.now();
 
-        if (direction === "right") {
-          const next =
-            current + WALK_SPEED;
+    const animate = (currentTime: number) => {
+      const elapsed = Math.min(
+        currentTime - previousTime,
+        32,
+      );
+      previousTime = currentTime;
 
-          if (next >= RIGHT_X) {
-            window.setTimeout(() => {
-              setDirection("idle");
-            }, 0);
+      const movement =
+        CHARACTER_SPEED *
+        elapsed *
+        (direction === "right" ? 1 : -1);
 
-            return RIGHT_X;
-          }
+      const next = xRef.current + movement;
+      const reachedEnd =
+        direction === "right"
+          ? next >= RIGHT_X
+          : next <= LEFT_X;
 
-          return next;
-        }
+      const position = reachedEnd
+        ? direction === "right"
+          ? RIGHT_X
+          : LEFT_X
+        : next;
 
-        // WALKING LEFT
+      xRef.current = position;
+      setX(position);
 
-        const next =
-          current - WALK_SPEED;
+      if (reachedEnd) {
+        setDirection("idle");
+        return;
+      }
 
-        if (next <= LEFT_X) {
-          window.setTimeout(() => {
-            setDirection("idle");
-          }, 0);
+      animationFrameId =
+        window.requestAnimationFrame(animate);
+    };
 
-          return LEFT_X;
-        }
-
-        return next;
-      });
-    }, 16);
+    animationFrameId =
+      window.requestAnimationFrame(animate);
 
     return () => {
-      window.clearInterval(interval);
+      window.cancelAnimationFrame(
+        animationFrameId,
+      );
     };
   }, [direction]);
 
-  // =================================
-  // DOG STARTS AFTER A DELAY
-  // =================================
-
   useEffect(() => {
-    if (direction === "idle") {
-      return;
-    }
+    if (direction === "idle") return;
 
     const timeout = window.setTimeout(() => {
       setDogDirection(direction);
@@ -147,148 +117,135 @@ export default function MovingCharacter() {
     };
   }, [direction]);
 
-  // =================================
-  // DOG MOVEMENT
-  // =================================
-
   useEffect(() => {
-    if (dogDirection === "idle") {
-      return;
-    }
+    if (dogDirection === "idle") return;
 
-    const interval = window.setInterval(() => {
-      setDogX((current) => {
-        // DOG WALKING RIGHT
+    const destination =
+      dogDirection === "right"
+        ? RIGHT_X - DOG_RIGHT_GAP
+        : LEFT_X - DOG_LEFT_GAP;
 
-        if (dogDirection === "right") {
-          const destination =
-            RIGHT_X - DOG_RIGHT_GAP;
+    let animationFrameId = 0;
+    let previousTime = performance.now();
 
-          const next =
-            current + DOG_WALK_SPEED;
+    const animate = (currentTime: number) => {
+      const elapsed = Math.min(
+        currentTime - previousTime,
+        32,
+      );
+      previousTime = currentTime;
 
-          if (next >= destination) {
-            window.setTimeout(() => {
-              setDogDirection("idle");
-            }, 0);
+      const movement =
+        DOG_SPEED *
+        elapsed *
+        (dogDirection === "right" ? 1 : -1);
 
-            return destination;
-          }
+      const next =
+        dogXRef.current + movement;
+      const reachedEnd =
+        dogDirection === "right"
+          ? next >= destination
+          : next <= destination;
 
-          return next;
-        }
+      const position = reachedEnd
+        ? destination
+        : next;
 
-        // DOG WALKING LEFT
-        // Character stops at 30%.
-        // Dog stops at 25%.
+      dogXRef.current = position;
+      setDogX(position);
 
-        const destination =
-          LEFT_X - DOG_LEFT_GAP;
+      if (reachedEnd) {
+        setDogDirection("idle");
+        return;
+      }
 
-        const next =
-          current - DOG_WALK_SPEED;
+      animationFrameId =
+        window.requestAnimationFrame(animate);
+    };
 
-        if (next <= destination) {
-          window.setTimeout(() => {
-            setDogDirection("idle");
-          }, 0);
-
-          return destination;
-        }
-
-        return next;
-      });
-    }, 16);
+    animationFrameId =
+      window.requestAnimationFrame(animate);
 
     return () => {
-      window.clearInterval(interval);
+      window.cancelAnimationFrame(
+        animationFrameId,
+      );
     };
   }, [dogDirection]);
 
-  // =================================
-  // CHARACTER SPRITE
-  // =================================
+  const characterSprite =
+    direction === "right"
+      ? "/bloomy/characters/female-blonde-walk-right.png"
+      : direction === "left"
+        ? "/bloomy/characters/female-blonde-walk-left.png"
+        : "/bloomy/characters/female-blonde-idle.png";
 
-  let characterSprite =
-    "/bloomy/characters/female-blonde-idle.png";
+  const characterFrameHeight =
+    direction === "left" ? 740 : 744;
 
-  if (direction === "right") {
-    characterSprite =
-      "/bloomy/characters/female-blonde-walk-right.png";
-  }
+  const dogSprite =
+    dogDirection === "right"
+      ? "/bloomy/characters/dog-walk-right.png"
+      : dogDirection === "left"
+        ? "/bloomy/characters/dog-walk-left.png"
+        : "/bloomy/characters/dog-idle.png";
 
-  if (direction === "left") {
-    characterSprite =
-      "/bloomy/characters/female-blonde-walk-left.png";
-  }
+  const dogFrameWidth =
+    dogDirection === "idle"
+      ? 1881 / 4
+      : 512;
 
-  // =================================
-  // DOG SPRITE
-  // =================================
-
-  let dogSprite =
-    "/bloomy/characters/dog-idle.png";
-
-  if (dogDirection === "right") {
-    dogSprite =
-      "/bloomy/characters/dog-walk-right.png";
-  }
-
-  if (dogDirection === "left") {
-    dogSprite =
-      "/bloomy/characters/dog-walk-left.png";
-  }
+  const dogFrameHeight =
+    dogDirection === "idle"
+      ? 836
+      : 682;
 
   return (
     <>
-      {/* ================================= */}
-      {/* CHARACTER */}
-      {/* ================================= */}
-
       <div
-        className="absolute bottom-[12%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10%] sm:scale-[0.85] lg:bottom-[6%] lg:scale-110 2xl:bottom-[14%] 2xl:scale-125"
-        style={{
-          left: `${x}%`,
-        }}
+        className="absolute bottom-[16%] z-10 origin-bottom -translate-x-1/2 scale-[0.68] sm:scale-[0.82] lg:scale-100 xl:scale-110 2xl:scale-[1.15]"
+        style={{ left: `${x}%` }}
       >
-        <CharacterSprite
-          src={characterSprite}
-          frames={4}
-          frameWidth={520}
-          frameHeight={756}
-          displayWidth={75}
-          speed={
+        <div
+          className={
             direction === "idle"
-              ? 500
-              : 180
+              ? undefined
+              : "bloomy-character-walk"
           }
-          paused={false}
-        />
+        >
+          <CharacterSprite
+            key={characterSprite}
+            src={characterSprite}
+            frames={4}
+            frameWidth={512}
+            frameHeight={characterFrameHeight}
+            displayWidth={75}
+            speed={direction === "idle" ? 480 : 145}
+          />
+        </div>
       </div>
 
-      {/* ================================= */}
-      {/* DOG */}
-      {/* ================================= */}
-
       <div
-        className="absolute bottom-[12.5%] z-10 origin-bottom -translate-x-1/2 scale-[0.72] sm:bottom-[10.5%] sm:scale-[0.85] lg:bottom-[6.5%] lg:scale-110 2xl:bottom-[14%] 2xl:scale-125"
-        style={{
-          left: `${dogX}%`,
-        }}
+        className="absolute bottom-[16%] z-10 origin-bottom -translate-x-1/2 scale-[0.68] sm:scale-[0.82] lg:scale-100 xl:scale-110 2xl:scale-[1.15]"
+        style={{ left: `${dogX}%` }}
       >
-        <CharacterSprite
-          src={dogSprite}
-          frames={4}
-          frameWidth={520}
-          frameHeight={756}
-          displayWidth={48}
-          speed={
+        <div
+          className={
             dogDirection === "idle"
-              ? 500
-              : 160
+              ? undefined
+              : "bloomy-dog-walk"
           }
-          paused={false}
-        />
+        >
+          <CharacterSprite
+            key={dogSprite}
+            src={dogSprite}
+            frames={4}
+            frameWidth={dogFrameWidth}
+            frameHeight={dogFrameHeight}
+            displayWidth={48}
+            speed={dogDirection === "idle" ? 480 : 130}
+          />
+        </div>
       </div>
     </>
   );

@@ -468,3 +468,71 @@ body {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Add this block at the end of src/app/globals.css */
+
+/*
+ * The viewport may have any shape. The stage always keeps the
+ * original 1536 × 1024 (3:2) scene ratio and covers the viewport.
+ * Background, effects and characters are cropped together.
+ */
+.bloomy-viewport {
+  container-name: bloomy-world;
+  container-type: size;
+}
+
+.bloomy-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 3 / 2;
+  transform: translate(-50%, -50%);
+}
+
+@container bloomy-world (min-aspect-ratio: 3 / 2) {
+  .bloomy-stage {
+    width: 100%;
+    height: auto;
+  }
+}
+
+@keyframes bloomyCharacterWalk {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes bloomyDogWalk {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+.bloomy-character-walk {
+  animation: bloomyCharacterWalk 290ms steps(2, end) infinite;
+  will-change: transform;
+}
+
+.bloomy-dog-walk {
+  animation: bloomyDogWalk 260ms steps(2, end) infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloomy-character-walk,
+  .bloomy-dog-walk {
+    animation: none;
+  }
+}

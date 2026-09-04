@@ -197,176 +197,182 @@ export default function BloomyWorld({
       )}
 
       {/* ================================= */}
-      {/* BLOOMY SCENE */}
+      {/* BLOOMY VIEWPORT */}
       {/* ================================= */}
 
-      <div className="relative h-[350px] w-full overflow-hidden bg-black sm:h-[420px] md:h-[470px] lg:h-[clamp(560px,45vw,700px)] 2xl:h-[720px]">
-        {/* ================================= */}
-        {/* BACKGROUND */}
-        {/* ================================= */}
+      <div className="bloomy-viewport relative h-[350px] w-full overflow-hidden bg-black sm:h-[420px] md:h-[470px] lg:h-[clamp(560px,45vw,700px)] 2xl:h-[720px]">
+        {/*
+         * This stage keeps the original 3:2 scene ratio.
+         * Background, effects and characters are cropped together.
+         */}
+        <div className="bloomy-stage">
+          {/* ================================= */}
+          {/* BACKGROUND */}
+          {/* ================================= */}
 
-        <img
-          key={scene}
-          src={`/bloomy/${scene}.webp`}
-          alt={`${scene} Bloomy world`}
-          fetchPriority="high"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover object-[52%_center] sm:object-center"
-        />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={scene}
+            src={`/bloomy/${scene}.webp`}
+            alt={`${scene} Bloomy world`}
+            fetchPriority="high"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-fill"
+          />
 
-        {/* ================================= */}
-        {/* DARK GRADIENT */}
-        {/* ================================= */}
+          {/* ================================= */}
+          {/* DARK GRADIENT */}
+          {/* ================================= */}
 
-        <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/35 via-transparent to-black/10" />
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-t from-black/35 via-transparent to-black/10" />
 
-        {/* ================================= */}
-        {/* AURORA */}
-        {/* ================================= */}
+          {/* ================================= */}
+          {/* AURORA */}
+          {/* ================================= */}
 
-        {scene === "aurora" && (
-          <>
-            {/* SVG WAVE FILTER */}
+          {scene === "aurora" && (
+            <>
+              {/* SVG WAVE FILTER */}
 
-            <svg
-              aria-hidden="true"
-              className="pointer-events-none absolute h-0 w-0"
-            >
-              <defs>
-                <filter
-                  id="aurora-wave-filter"
-                  x="-20%"
-                  y="-20%"
-                  width="140%"
-                  height="140%"
-                >
-                  <feTurbulence
-                    type="fractalNoise"
-                    baseFrequency="0.008 0.018"
-                    numOctaves="2"
-                    seed="4"
-                    result="auroraNoise"
+              <svg
+                aria-hidden="true"
+                className="pointer-events-none absolute h-0 w-0"
+              >
+                <defs>
+                  <filter
+                    id="aurora-wave-filter"
+                    x="-20%"
+                    y="-20%"
+                    width="140%"
+                    height="140%"
                   >
-                    <animate
-                      attributeName="baseFrequency"
-                      dur="10s"
-                      values="
-                        0.008 0.018;
-                        0.012 0.026;
-                        0.006 0.022;
-                        0.008 0.018
-                      "
-                      repeatCount="indefinite"
+                    <feTurbulence
+                      type="fractalNoise"
+                      baseFrequency="0.008 0.018"
+                      numOctaves="2"
+                      seed="4"
+                      result="auroraNoise"
+                    >
+                      <animate
+                        attributeName="baseFrequency"
+                        dur="10s"
+                        values="
+                          0.008 0.018;
+                          0.012 0.026;
+                          0.006 0.022;
+                          0.008 0.018
+                        "
+                        repeatCount="indefinite"
+                      />
+                    </feTurbulence>
+
+                    <feDisplacementMap
+                      in="SourceGraphic"
+                      in2="auroraNoise"
+                      scale="24"
+                      xChannelSelector="R"
+                      yChannelSelector="B"
+                    >
+                      <animate
+                        attributeName="scale"
+                        dur="8s"
+                        values="
+                          16;
+                          28;
+                          20;
+                          16
+                        "
+                        repeatCount="indefinite"
+                      />
+                    </feDisplacementMap>
+                  </filter>
+                </defs>
+              </svg>
+
+              {/* SKY AURORA */}
+
+              <div className="pointer-events-none absolute inset-0 z-[5] overflow-hidden">
+                <div className="absolute left-1/2 top-0 h-full w-[110%] -translate-x-1/2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/bloomy/effects/aurora.png"
+                    alt=""
+                    decoding="async"
+                    className="aurora-sky-motion absolute inset-0 h-full w-full max-w-none object-cover"
+                  />
+                </div>
+              </div>
+
+              {/* WATER REFLECTION */}
+
+              <div className="pointer-events-none absolute inset-0 z-[6] overflow-hidden">
+                <div className="aurora-water-reflection" />
+              </div>
+            </>
+          )}
+
+          {/* ================================= */}
+          {/* CHARACTER AND DOG */}
+          {/* ================================= */}
+
+          <div className="absolute inset-0 z-10">
+            <MovingCharacter />
+          </div>
+
+          {/* ================================= */}
+          {/* RAIN */}
+          {/* ================================= */}
+
+          {scene === "rainy" && (
+            <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+              {/* FALLING RAIN */}
+
+              <div className="rain-layer rain-layer-back" />
+              <div className="rain-layer rain-layer-front" />
+
+              {/* GROUND SPLASHES */}
+
+              <div className="absolute inset-0 z-30">
+                {rainSplashes.map(
+                  (
+                    splash,
+                    index,
+                  ) => (
+                    <span
+                      key={`${splash.left}-${index}`}
+                      className={`rain-ground-splash rain-ground-splash-${splash.size}`}
+                      style={{
+                        left:
+                          splash.left,
+
+                        top:
+                          splash.top,
+
+                        animationDelay:
+                          splash.delay,
+
+                        animationDuration:
+                          splash.duration,
+                      }}
                     />
-                  </feTurbulence>
-
-                  <feDisplacementMap
-                    in="SourceGraphic"
-                    in2="auroraNoise"
-                    scale="24"
-                    xChannelSelector="R"
-                    yChannelSelector="B"
-                  >
-                    <animate
-                      attributeName="scale"
-                      dur="8s"
-                      values="
-                        16;
-                        28;
-                        20;
-                        16
-                      "
-                      repeatCount="indefinite"
-                    />
-                  </feDisplacementMap>
-                </filter>
-              </defs>
-            </svg>
-
-            {/* SKY AURORA */}
-
-            <div className="pointer-events-none absolute inset-0 z-[5] overflow-hidden">
-              <div className="absolute left-1/2 top-0 h-full w-[110%] -translate-x-1/2">
-                <img
-                  src="/bloomy/effects/aurora.png"
-                  alt=""
-                  className="aurora-sky-motion absolute inset-0 h-full w-full max-w-none object-cover"
-                />
+                  ),
+                )}
               </div>
             </div>
+          )}
 
-            {/* WATER REFLECTION */}
+          {/* ================================= */}
+          {/* SNOW */}
+          {/* ================================= */}
 
-            <div className="pointer-events-none absolute inset-0 z-[6] overflow-hidden">
-              <div className="aurora-water-reflection" />
+          {scene === "snowy" && (
+            <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+              <div className="snow-layer snow-back" />
+              <div className="snow-layer snow-middle" />
+              <div className="snow-layer snow-front" />
             </div>
-          </>
-        )}
-
-        {/* ================================= */}
-        {/* CHARACTER AND DOG */}
-        {/* ================================= */}
-
-        <div className="absolute inset-0 z-10">
-          <MovingCharacter />
+          )}
         </div>
-
-        {/* ================================= */}
-        {/* RAIN */}
-        {/* ================================= */}
-
-        {scene === "rainy" && (
-          <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
-            {/* FALLING RAIN */}
-
-            <div className="rain-layer rain-layer-back" />
-
-            <div className="rain-layer rain-layer-front" />
-
-            {/* GROUND SPLASHES */}
-
-            <div className="absolute inset-0 z-30">
-              {rainSplashes.map(
-                (
-                  splash,
-                  index,
-                ) => (
-                  <span
-                    key={`${splash.left}-${index}`}
-                    className={`rain-ground-splash rain-ground-splash-${splash.size}`}
-                    style={{
-                      left:
-                        splash.left,
-
-                      top:
-                        splash.top,
-
-                      animationDelay:
-                        splash.delay,
-
-                      animationDuration:
-                        splash.duration,
-                    }}
-                  />
-                ),
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ================================= */}
-        {/* SNOW */}
-        {/* ================================= */}
-
-        {scene === "snowy" && (
-          <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
-            <div className="snow-layer snow-back" />
-
-            <div className="snow-layer snow-middle" />
-
-            <div className="snow-layer snow-front" />
-          </div>
-        )}
       </div>
     </div>
   );
