@@ -214,7 +214,6 @@ export default function MovingCharacter() {
           }
         >
           <CharacterSprite
-            key={characterSprite}
             src={characterSprite}
             frames={4}
             frameWidth={512}
@@ -237,7 +236,6 @@ export default function MovingCharacter() {
           }
         >
           <CharacterSprite
-            key={dogSprite}
             src={dogSprite}
             frames={4}
             frameWidth={dogFrameWidth}
