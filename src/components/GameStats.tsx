@@ -7,8 +7,8 @@ export default function GameStats() {
     level,
     xp,
     xpToNextLevel,
-    energy,
-    maxEnergy,
+    // energy,
+    // maxEnergy,
     coins,
     gems,
     addXp,
@@ -20,10 +20,10 @@ export default function GameStats() {
     (xp / xpToNextLevel) * 100
   );
 
-  const energyPercentage = Math.min(
-    100,
-    (energy / maxEnergy) * 100
-  );
+  // const energyPercentage = Math.min(
+  //   100,
+  //   (energy / maxEnergy) * 100
+  // );
 
   return (
     <div className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -85,7 +85,7 @@ export default function GameStats() {
       </div>
 
       {/* ENERGY */}
-      <div>
+      {/* <div>
         <div className="mb-2 flex justify-between text-sm">
           <span className="text-zinc-300">
             ⚡ Energy
@@ -104,7 +104,7 @@ export default function GameStats() {
             }}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* TEMPORARY TEST BUTTONS */}
       <div className="flex gap-2 border-t border-white/10 pt-4">
