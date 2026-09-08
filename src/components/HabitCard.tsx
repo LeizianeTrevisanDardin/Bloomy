@@ -75,20 +75,53 @@ export default function HabitsPanel({
 }: HabitsPanelProps) {
   const {
     habits,
+    archivedHabits,
+
     loading,
+    loadingArchived,
+
     error,
+
     creatingHabit,
     completingHabitId,
     uncompletingHabitId,
+    restoringHabitId,
+    deletingHabitId,
+
     createHabit,
     completeHabit,
     uncompleteHabit,
+
+    restoreHabit,
+    deleteHabit,
+
+    refreshArchivedHabits,
   } = useHabits();
+
+  // =================================
+  // MODALS
+  // =================================
 
   const [
     showCreateModal,
     setShowCreateModal,
   ] = useState(false);
+
+  const [
+    showArchivedModal,
+    setShowArchivedModal,
+  ] = useState(false);
+
+  const [
+    habitPendingDelete,
+    setHabitPendingDelete,
+  ] = useState<Habit | null>(
+    null,
+  );
+
+  // =================================
+  // CREATE FORM
+  // =================================
 
   const [form, setForm] =
     useState<CreateHabitInput>(
@@ -103,7 +136,7 @@ export default function HabitsPanel({
   );
 
   // =================================
-  // CLOSE MODAL
+  // CLOSE CREATE MODAL
   // =================================
 
   const closeModal = () => {
@@ -115,6 +148,19 @@ export default function HabitsPanel({
     setFormError(null);
     setForm(initialForm);
   };
+
+  // =================================
+  // OPEN ARCHIVED
+  // =================================
+
+  const openArchivedModal =
+    async () => {
+      setShowArchivedModal(
+        true,
+      );
+
+      await refreshArchivedHabits();
+    };
 
   // =================================
   // CREATE HABIT
@@ -143,7 +189,9 @@ export default function HabitsPanel({
       const createdHabit =
         await createHabit({
           ...form,
+
           title,
+
           description:
             form.description.trim(),
         });
@@ -156,7 +204,10 @@ export default function HabitsPanel({
         return;
       }
 
-      setShowCreateModal(false);
+      setShowCreateModal(
+        false,
+      );
+
       setForm(initialForm);
     };
 
@@ -165,7 +216,9 @@ export default function HabitsPanel({
   // =================================
 
   const handleComplete =
-    async (habit: Habit) => {
+    async (
+      habit: Habit,
+    ) => {
       if (
         habit.completed_today ||
         completingHabitId ===
@@ -192,7 +245,9 @@ export default function HabitsPanel({
   // =================================
 
   const handleUncomplete =
-    async (habit: Habit) => {
+    async (
+      habit: Habit,
+    ) => {
       if (
         !habit.completed_today ||
         uncompletingHabitId ===
@@ -219,7 +274,9 @@ export default function HabitsPanel({
   // =================================
 
   const handleToggleHabit =
-    async (habit: Habit) => {
+    async (
+      habit: Habit,
+    ) => {
       if (
         completingHabitId ||
         uncompletingHabitId
@@ -227,7 +284,9 @@ export default function HabitsPanel({
         return;
       }
 
-      if (habit.completed_today) {
+      if (
+        habit.completed_today
+      ) {
         await handleUncomplete(
           habit,
         );
@@ -240,8 +299,57 @@ export default function HabitsPanel({
       );
     };
 
+  // =================================
+  // RESTORE HABIT
+  // =================================
+
+  const handleRestoreHabit =
+    async (
+      habit: Habit,
+    ) => {
+      if (
+        restoringHabitId ||
+        deletingHabitId
+      ) {
+        return;
+      }
+
+      await restoreHabit(
+        habit.id,
+      );
+    };
+
+  // =================================
+  // DELETE HABIT
+  // =================================
+
+  const handleDeleteHabit =
+    async () => {
+      if (
+        !habitPendingDelete ||
+        deletingHabitId
+      ) {
+        return;
+      }
+
+      const deleted =
+        await deleteHabit(
+          habitPendingDelete.id,
+        );
+
+      if (deleted) {
+        setHabitPendingDelete(
+          null,
+        );
+      }
+    };
+
   return (
     <>
+      {/* ================================= */}
+      {/* HABITS PANEL */}
+      {/* ================================= */}
+
       <section className="h-full rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur sm:p-5">
         {/* ================================= */}
         {/* HEADER */}
@@ -258,17 +366,63 @@ export default function HabitsPanel({
             </h2>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setShowCreateModal(
-                true,
-              );
-            }}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-zinc-300 transition hover:border-purple-400/30 hover:bg-purple-400/10 hover:text-purple-200 sm:w-auto"
-          >
-            + Add habit
-          </button>
+          <div className="flex w-full gap-2 sm:w-auto">
+            {/* ARCHIVED */}
+
+            <button
+              type="button"
+              onClick={() => {
+                void openArchivedModal();
+              }}
+              className="
+                flex-1
+                rounded-xl
+                border
+                border-white/10
+                bg-black/20
+                px-3
+                py-2
+                text-sm
+                text-zinc-400
+                transition
+                hover:border-purple-400/30
+                hover:bg-purple-400/10
+                hover:text-purple-200
+                sm:flex-none
+              "
+            >
+              🗃️ Archived
+            </button>
+
+            {/* ADD HABIT */}
+
+            <button
+              type="button"
+              onClick={() => {
+                setShowCreateModal(
+                  true,
+                );
+              }}
+              className="
+                flex-1
+                rounded-xl
+                border
+                border-white/10
+                bg-white/5
+                px-3
+                py-2
+                text-sm
+                text-zinc-300
+                transition
+                hover:border-purple-400/30
+                hover:bg-purple-400/10
+                hover:text-purple-200
+                sm:flex-none
+              "
+            >
+              + Add habit
+            </button>
+          </div>
         </div>
 
         {/* ================================= */}
@@ -306,17 +460,19 @@ export default function HabitsPanel({
         {/* ERROR */}
         {/* ================================= */}
 
-        {!loading && error && (
-          <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4">
-            <p className="text-sm text-red-300">
-              {error}
-            </p>
+        {!loading &&
+          error && (
+            <div className="rounded-2xl border border-red-400/20 bg-red-400/5 p-4">
+              <p className="text-sm text-red-300">
+                {error}
+              </p>
 
-            <p className="mt-1 text-xs text-zinc-500">
-              Please refresh the page and try again.
-            </p>
-          </div>
-        )}
+              <p className="mt-1 text-xs text-zinc-500">
+                Please refresh the
+                page and try again.
+              </p>
+            </div>
+          )}
 
         {/* ================================= */}
         {/* EMPTY STATE */}
@@ -324,7 +480,8 @@ export default function HabitsPanel({
 
         {!loading &&
           !error &&
-          habits.length === 0 && (
+          habits.length ===
+            0 && (
             <div className="rounded-2xl border border-dashed border-white/10 bg-black/10 px-4 py-8 text-center">
               <span className="text-3xl">
                 🌱
@@ -335,8 +492,20 @@ export default function HabitsPanel({
               </p>
 
               <p className="mt-1 text-xs leading-5 text-zinc-500">
-                Click Add habit to create your first habit.
+                Click Add habit to
+                create your first
+                habit.
               </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  void openArchivedModal();
+                }}
+                className="mt-4 text-xs text-purple-300 transition hover:text-purple-200"
+              >
+                View archived habits
+              </button>
             </div>
           )}
 
@@ -346,7 +515,8 @@ export default function HabitsPanel({
 
         {!loading &&
           !error &&
-          habits.length > 0 && (
+          habits.length >
+            0 && (
             <div className="space-y-3">
               {habits.map(
                 (habit) => {
@@ -367,7 +537,9 @@ export default function HabitsPanel({
 
                   return (
                     <div
-                      key={habit.id}
+                      key={
+                        habit.id
+                      }
                       className={`group rounded-2xl border p-3 transition sm:p-4 ${
                         completed
                           ? "border-emerald-400/20 bg-emerald-400/5"
@@ -484,7 +656,8 @@ export default function HabitsPanel({
                       <div className="mt-4">
                         <div className="mb-1.5 flex items-center justify-between text-[10px] text-zinc-500">
                           <span>
-                            Weekly target
+                            Weekly
+                            target
                           </span>
 
                           <span>
@@ -544,6 +717,352 @@ export default function HabitsPanel({
       </section>
 
       {/* ================================= */}
+      {/* ARCHIVED HABITS MODAL */}
+      {/* ================================= */}
+
+      {showArchivedModal && (
+        <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
+          {/* BACKDROP */}
+
+          <button
+            type="button"
+            aria-label="Close archived habits"
+            onClick={() => {
+              setShowArchivedModal(
+                false,
+              );
+            }}
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+          />
+
+          {/* MODAL */}
+
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="archived-habits-title"
+            className="
+              relative
+              z-10
+              max-h-[85vh]
+              w-full
+              max-w-xl
+              overflow-y-auto
+              rounded-3xl
+              border
+              border-white/10
+              bg-[#17151d]
+              p-5
+              shadow-2xl
+              sm:p-6
+            "
+          >
+            {/* HEADER */}
+
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-purple-300">
+                  Saved for later
+                </p>
+
+                <h2
+                  id="archived-habits-title"
+                  className="mt-1 text-2xl font-semibold text-white"
+                >
+                  🗃️ Archived habits
+                </h2>
+
+                <p className="mt-1 text-sm text-zinc-500">
+                  Restore a habit
+                  anytime you want
+                  to start using it
+                  again.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowArchivedModal(
+                    false,
+                  );
+                }}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-white"
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* LOADING */}
+
+            {loadingArchived && (
+              <div className="mt-6 space-y-3">
+                {[0, 1].map(
+                  (item) => (
+                    <div
+                      key={
+                        item
+                      }
+                      className="h-24 animate-pulse rounded-2xl bg-white/5"
+                    />
+                  ),
+                )}
+              </div>
+            )}
+
+            {/* EMPTY */}
+
+            {!loadingArchived &&
+              archivedHabits.length ===
+                0 && (
+                <div className="mt-6 rounded-2xl border border-dashed border-white/10 bg-black/10 px-4 py-10 text-center">
+                  <span className="text-3xl">
+                    🌱
+                  </span>
+
+                  <p className="mt-3 text-sm font-medium text-zinc-200">
+                    Nothing
+                    archived
+                  </p>
+
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Archived
+                    habits will
+                    appear here.
+                  </p>
+                </div>
+              )}
+
+            {/* ARCHIVED LIST */}
+
+            {!loadingArchived &&
+              archivedHabits.length >
+                0 && (
+                <div className="mt-6 space-y-3">
+                  {archivedHabits.map(
+                    (
+                      habit,
+                    ) => {
+                      const restoring =
+                        restoringHabitId ===
+                        habit.id;
+
+                      const deleting =
+                        deletingHabitId ===
+                        habit.id;
+
+                      const processing =
+                        restoring ||
+                        deleting;
+
+                      return (
+                        <div
+                          key={
+                            habit.id
+                          }
+                          className="rounded-2xl border border-white/10 bg-black/10 p-4"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl">
+                              {
+                                habit.icon
+                              }
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-white">
+                                {
+                                  habit.title
+                                }
+                              </p>
+
+                              {habit.description && (
+                                <p className="mt-1 text-xs text-zinc-500">
+                                  {
+                                    habit.description
+                                  }
+                                </p>
+                              )}
+
+                              <div className="mt-1 flex flex-wrap gap-2 text-[10px] text-zinc-500">
+                                <span className="capitalize">
+                                  {
+                                    habit.frequency
+                                  }
+                                </span>
+
+                                <span>
+                                  •
+                                </span>
+
+                                <span>
+                                  {
+                                    habit.target_per_week
+                                  }{" "}
+                                  days/week
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ACTIONS */}
+
+                          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            <button
+                              type="button"
+                              disabled={
+                                processing
+                              }
+                              onClick={() => {
+                                setHabitPendingDelete(
+                                  habit,
+                                );
+                              }}
+                              className="
+                                rounded-xl
+                                border
+                                border-red-400/20
+                                bg-red-400/5
+                                px-4
+                                py-2
+                                text-sm
+                                text-red-300
+                                transition
+                                hover:bg-red-400/10
+                                disabled:cursor-wait
+                                disabled:opacity-50
+                              "
+                            >
+                              Delete
+                              permanently
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={
+                                processing
+                              }
+                              onClick={() => {
+                                void handleRestoreHabit(
+                                  habit,
+                                );
+                              }}
+                              className="
+                                rounded-xl
+                                border
+                                border-emerald-400/20
+                                bg-emerald-400/10
+                                px-4
+                                py-2
+                                text-sm
+                                font-medium
+                                text-emerald-300
+                                transition
+                                hover:border-emerald-400/40
+                                hover:bg-emerald-400/15
+                                disabled:cursor-wait
+                                disabled:opacity-50
+                              "
+                            >
+                              {restoring
+                                ? "Restoring..."
+                                : "↩ Restore"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    },
+                  )}
+                </div>
+              )}
+          </div>
+        </div>
+      )}
+
+      {/* ================================= */}
+      {/* DELETE CONFIRMATION */}
+      {/* CUSTOM BLOOMY MODAL */}
+      {/* ================================= */}
+
+      {habitPendingDelete && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Cancel delete"
+            onClick={() => {
+              if (
+                !deletingHabitId
+              ) {
+                setHabitPendingDelete(
+                  null,
+                );
+              }
+            }}
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          />
+
+          <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-400/20 bg-[#17151d] p-6 shadow-2xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-400/10 text-2xl">
+              🗑️
+            </div>
+
+            <h2 className="mt-4 text-xl font-semibold text-white">
+              Delete habit
+              permanently?
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-zinc-400">
+              <span className="font-medium text-zinc-200">
+                {
+                  habitPendingDelete.title
+                }
+              </span>{" "}
+              will be permanently
+              deleted. This action
+              cannot be undone.
+            </p>
+
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={
+                  Boolean(
+                    deletingHabitId,
+                  )
+                }
+                onClick={() => {
+                  setHabitPendingDelete(
+                    null,
+                  );
+                }}
+                className="rounded-xl border border-white/10 px-4 py-3 text-sm text-zinc-400 transition hover:bg-white/5 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  Boolean(
+                    deletingHabitId,
+                  )
+                }
+                onClick={() => {
+                  void handleDeleteHabit();
+                }}
+                className="rounded-xl border border-red-400/20 bg-red-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-400 disabled:cursor-wait disabled:opacity-60"
+              >
+                {deletingHabitId
+                  ? "Deleting..."
+                  : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================= */}
       {/* CREATE HABIT MODAL */}
       {/* ================================= */}
 
@@ -554,7 +1073,9 @@ export default function HabitsPanel({
           <button
             type="button"
             aria-label="Close add habit form"
-            onClick={closeModal}
+            onClick={
+              closeModal
+            }
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
           />
 
@@ -584,7 +1105,9 @@ export default function HabitsPanel({
 
               <button
                 type="button"
-                onClick={closeModal}
+                onClick={
+                  closeModal
+                }
                 disabled={
                   creatingHabit
                 }
@@ -598,7 +1121,9 @@ export default function HabitsPanel({
             {/* FORM */}
 
             <form
-              onSubmit={(event) => {
+              onSubmit={(
+                event,
+              ) => {
                 void handleCreateHabit(
                   event,
                 );
@@ -618,17 +1143,26 @@ export default function HabitsPanel({
                 <input
                   id="habit-title"
                   type="text"
-                  value={form.title}
-                  maxLength={80}
+                  value={
+                    form.title
+                  }
+                  maxLength={
+                    80
+                  }
                   autoFocus
                   required
-                  onChange={(event) => {
+                  onChange={(
+                    event,
+                  ) => {
                     setForm(
-                      (current) => ({
+                      (
+                        current,
+                      ) => ({
                         ...current,
 
                         title:
-                          event.target
+                          event
+                            .target
                             .value,
                       }),
                     );
@@ -656,15 +1190,22 @@ export default function HabitsPanel({
                   value={
                     form.description
                   }
-                  maxLength={240}
+                  maxLength={
+                    240
+                  }
                   rows={3}
-                  onChange={(event) => {
+                  onChange={(
+                    event,
+                  ) => {
                     setForm(
-                      (current) => ({
+                      (
+                        current,
+                      ) => ({
                         ...current,
 
                         description:
-                          event.target
+                          event
+                            .target
                             .value,
                       }),
                     );
@@ -685,7 +1226,9 @@ export default function HabitsPanel({
                   {iconOptions.map(
                     (icon) => (
                       <button
-                        key={icon}
+                        key={
+                          icon
+                        }
                         type="button"
                         onClick={() => {
                           setForm(
@@ -693,6 +1236,7 @@ export default function HabitsPanel({
                               current,
                             ) => ({
                               ...current,
+
                               icon,
                             }),
                           );
@@ -705,7 +1249,9 @@ export default function HabitsPanel({
                         }`}
                         aria-label={`Select ${icon}`}
                       >
-                        {icon}
+                        {
+                          icon
+                        }
                       </button>
                     ),
                   )}
@@ -727,13 +1273,18 @@ export default function HabitsPanel({
                   value={
                     form.frequency
                   }
-                  onChange={(event) => {
+                  onChange={(
+                    event,
+                  ) => {
                     setForm(
-                      (current) => ({
+                      (
+                        current,
+                      ) => ({
                         ...current,
 
                         frequency:
-                          event.target
+                          event
+                            .target
                             .value as HabitFrequency,
                       }),
                     );
@@ -762,7 +1313,8 @@ export default function HabitsPanel({
                     htmlFor="habit-target"
                     className="text-sm font-medium text-zinc-200"
                   >
-                    Weekly target
+                    Weekly
+                    target
                   </label>
 
                   <span className="text-sm text-purple-300">
@@ -781,14 +1333,19 @@ export default function HabitsPanel({
                   value={
                     form.targetPerWeek
                   }
-                  onChange={(event) => {
+                  onChange={(
+                    event,
+                  ) => {
                     setForm(
-                      (current) => ({
+                      (
+                        current,
+                      ) => ({
                         ...current,
 
                         targetPerWeek:
                           Number(
-                            event.target
+                            event
+                              .target
                               .value,
                           ),
                       }),
@@ -807,7 +1364,9 @@ export default function HabitsPanel({
 
                 <div className="mt-2 grid grid-cols-3 gap-2">
                   {difficultyOptions.map(
-                    (option) => (
+                    (
+                      option,
+                    ) => (
                       <button
                         key={
                           option.value
@@ -853,7 +1412,9 @@ export default function HabitsPanel({
 
               {formError && (
                 <p className="rounded-xl border border-red-400/20 bg-red-400/5 px-3 py-2 text-xs text-red-300">
-                  {formError}
+                  {
+                    formError
+                  }
                 </p>
               )}
 
@@ -862,7 +1423,9 @@ export default function HabitsPanel({
               <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  onClick={closeModal}
+                  onClick={
+                    closeModal
+                  }
                   disabled={
                     creatingHabit
                   }

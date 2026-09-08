@@ -49,53 +49,163 @@ type HabitDatabaseRow = {
     | null;
 };
 
-export function useHabits() {
-  const [supabase] = useState(
-    () => createClient(),
-  );
+function formatHabit(
+  habit: HabitDatabaseRow,
+): Habit {
+  return {
+    id: habit.id,
 
-  const [habits, setHabits] =
+    user_id:
+      habit.user_id,
+
+    title:
+      habit.title,
+
+    description:
+      habit.description,
+
+    icon:
+      habit.icon ||
+      "🌱",
+
+    color:
+      habit.color ||
+      "purple",
+
+    frequency:
+      habit.frequency ||
+      "daily",
+
+    target_per_week:
+      habit.target_per_week ??
+      7,
+
+    xp_reward:
+      habit.xp_reward ??
+      0,
+
+    coin_reward:
+      habit.coin_reward ??
+      0,
+
+    position:
+      habit.position ??
+      0,
+
+    is_active:
+      habit.is_active ??
+      true,
+
+    created_at:
+      habit.created_at,
+
+    updated_at:
+      habit.updated_at,
+
+    completed_today:
+      Boolean(
+        habit
+          .habit_completions
+          ?.length,
+      ),
+  };
+}
+
+export function useHabits() {
+  const [supabase] =
+    useState(
+      () => createClient(),
+    );
+
+  // =================================
+  // STATE
+  // =================================
+
+  const [
+    habits,
+    setHabits,
+  ] =
     useState<Habit[]>([]);
 
-  const [loading, setLoading] =
+  const [
+    archivedHabits,
+    setArchivedHabits,
+  ] =
+    useState<Habit[]>([]);
+
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(true);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [
+    loadingArchived,
+    setLoadingArchived,
+  ] =
+    useState(false);
+
+  const [
+    error,
+    setError,
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     creatingHabit,
     setCreatingHabit,
-  ] = useState(false);
+  ] =
+    useState(false);
 
   const [
     completingHabitId,
     setCompletingHabitId,
-  ] = useState<string | null>(
-    null,
-  );
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     uncompletingHabitId,
     setUncompletingHabitId,
-  ] = useState<string | null>(
-    null,
-  );
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     updatingHabitId,
     setUpdatingHabitId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     archivingHabitId,
     setArchivingHabitId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
+
+  const [
+    restoringHabitId,
+    setRestoringHabitId,
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     deletingHabitId,
     setDeletingHabitId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
 
   // =================================
   // CALGARY LOCAL DATE
@@ -109,15 +219,22 @@ export function useHabits() {
           timeZone:
             "America/Edmonton",
 
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
+          year:
+            "numeric",
+
+          month:
+            "2-digit",
+
+          day:
+            "2-digit",
         },
-      ).format(new Date());
+      ).format(
+        new Date(),
+      );
     }, []);
 
   // =================================
-  // LOAD HABITS
+  // LOAD ACTIVE HABITS
   // =================================
 
   const loadHabits =
@@ -127,8 +244,10 @@ export function useHabits() {
         setError(null);
 
         const {
-          data: userData,
-          error: userError,
+          data:
+            userData,
+          error:
+            userError,
         } =
           await supabase.auth.getUser();
 
@@ -150,57 +269,67 @@ export function useHabits() {
 
         const {
           data,
-          error: habitsError,
-        } = await supabase
-          .from("habits")
-          .select(
-            `
-              id,
-              user_id,
-              title,
-              description,
-              icon,
-              color,
-              frequency,
-              target_per_week,
-              xp_reward,
-              coin_reward,
-              position,
-              is_active,
-              created_at,
-              updated_at,
-              habit_completions (
+          error:
+            habitsError,
+        } =
+          await supabase
+            .from(
+              "habits",
+            )
+            .select(
+              `
                 id,
-                completed_on
-              )
-            `,
-          )
-          .eq(
-            "user_id",
-            userData.user.id,
-          )
-          .eq(
-            "is_active",
-            true,
-          )
-          .eq(
-            "habit_completions.completed_on",
-            today,
-          )
-          .order(
-            "position",
-            {
-              ascending: true,
-            },
-          )
-          .order(
-            "created_at",
-            {
-              ascending: true,
-            },
-          );
+                user_id,
+                title,
+                description,
+                icon,
+                color,
+                frequency,
+                target_per_week,
+                xp_reward,
+                coin_reward,
+                position,
+                is_active,
+                created_at,
+                updated_at,
+                habit_completions (
+                  id,
+                  completed_on
+                )
+              `,
+            )
+            .eq(
+              "user_id",
+              userData
+                .user
+                .id,
+            )
+            .eq(
+              "is_active",
+              true,
+            )
+            .eq(
+              "habit_completions.completed_on",
+              today,
+            )
+            .order(
+              "position",
+              {
+                ascending:
+                  true,
+              },
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  true,
+              },
+            );
 
-        if (habitsError) {
+        if (
+          habitsError
+        ) {
           throw habitsError;
         }
 
@@ -208,69 +337,10 @@ export function useHabits() {
           (data ??
             []) as HabitDatabaseRow[];
 
-        const formattedHabits:
-          Habit[] = rows.map(
-          (habit) => ({
-            id: habit.id,
-
-            user_id:
-              habit.user_id,
-
-            title:
-              habit.title,
-
-            description:
-              habit.description,
-
-            icon:
-              habit.icon ||
-              "🌱",
-
-            color:
-              habit.color ||
-              "purple",
-
-            frequency:
-              habit.frequency ||
-              "daily",
-
-            target_per_week:
-              habit.target_per_week ??
-              7,
-
-            xp_reward:
-              habit.xp_reward ??
-              0,
-
-            coin_reward:
-              habit.coin_reward ??
-              0,
-
-            position:
-              habit.position ??
-              0,
-
-            is_active:
-              habit.is_active ??
-              true,
-
-            created_at:
-              habit.created_at,
-
-            updated_at:
-              habit.updated_at,
-
-            completed_today:
-              Boolean(
-                habit
-                  .habit_completions
-                  ?.length,
-              ),
-          }),
-        );
-
         setHabits(
-          formattedHabits,
+          rows.map(
+            formatHabit,
+          ),
         );
       } catch {
         setHabits([]);
@@ -287,47 +357,175 @@ export function useHabits() {
     ]);
 
   // =================================
+  // LOAD ARCHIVED HABITS
+  // =================================
+
+  const loadArchivedHabits =
+    useCallback(async () => {
+      try {
+        setLoadingArchived(
+          true,
+        );
+
+        setError(null);
+
+        const {
+          data:
+            userData,
+          error:
+            userError,
+        } =
+          await supabase.auth.getUser();
+
+        if (
+          userError ||
+          !userData.user
+        ) {
+          setArchivedHabits(
+            [],
+          );
+
+          setError(
+            "User session not found.",
+          );
+
+          return;
+        }
+
+        const {
+          data,
+          error:
+            archivedError,
+        } =
+          await supabase
+            .from(
+              "habits",
+            )
+            .select(
+              `
+                id,
+                user_id,
+                title,
+                description,
+                icon,
+                color,
+                frequency,
+                target_per_week,
+                xp_reward,
+                coin_reward,
+                position,
+                is_active,
+                created_at,
+                updated_at
+              `,
+            )
+            .eq(
+              "user_id",
+              userData
+                .user
+                .id,
+            )
+            .eq(
+              "is_active",
+              false,
+            )
+            .order(
+              "updated_at",
+              {
+                ascending:
+                  false,
+              },
+            );
+
+        if (
+          archivedError
+        ) {
+          throw archivedError;
+        }
+
+        const rows =
+          (data ??
+            []).map(
+              (habit) => ({
+                ...habit,
+
+                habit_completions:
+                  null,
+              }),
+            ) as HabitDatabaseRow[];
+
+        setArchivedHabits(
+          rows.map(
+            formatHabit,
+          ),
+        );
+      } catch {
+        setArchivedHabits(
+          [],
+        );
+
+        setError(
+          "Unable to load archived habits.",
+        );
+      } finally {
+        setLoadingArchived(
+          false,
+        );
+      }
+    }, [supabase]);
+
+  // =================================
   // CREATE HABIT
   // =================================
 
   const createHabit =
     useCallback(
       async (
-        input: CreateHabitInput,
-      ): Promise<Habit | null> => {
+        input:
+          CreateHabitInput,
+      ): Promise<
+        Habit | null
+      > => {
         try {
-          setCreatingHabit(true);
+          setCreatingHabit(
+            true,
+          );
+
           setError(null);
 
           const {
             data,
-            error: createError,
-          } = await supabase.rpc(
-            "create_habit",
-            {
-              p_title:
-                input.title,
+            error:
+              createError,
+          } =
+            await supabase.rpc(
+              "create_habit",
+              {
+                p_title:
+                  input.title,
 
-              p_description:
-                input.description ||
-                null,
+                p_description:
+                  input.description ||
+                  null,
 
-              p_icon:
-                input.icon ||
-                "🌱",
+                p_icon:
+                  input.icon ||
+                  "🌱",
 
-              p_frequency:
-                input.frequency,
+                p_frequency:
+                  input.frequency,
 
-              p_target_per_week:
-                input.targetPerWeek,
+                p_target_per_week:
+                  input.targetPerWeek,
 
-              p_difficulty:
-                input.difficulty,
-            },
-          );
+                p_difficulty:
+                  input.difficulty,
+              },
+            );
 
-          if (createError) {
+          if (
+            createError
+          ) {
             throw createError;
           }
 
@@ -359,8 +557,11 @@ export function useHabits() {
   const completeHabit =
     useCallback(
       async (
-        habitId: string,
-      ): Promise<HabitCompletionResult | null> => {
+        habitId:
+          string,
+      ): Promise<
+        HabitCompletionResult | null
+      > => {
         try {
           setCompletingHabitId(
             habitId,
@@ -372,15 +573,18 @@ export function useHabits() {
             data,
             error:
               completionError,
-          } = await supabase.rpc(
-            "complete_habit",
-            {
-              p_habit_id:
-                habitId,
-            },
-          );
+          } =
+            await supabase.rpc(
+              "complete_habit",
+              {
+                p_habit_id:
+                  habitId,
+              },
+            );
 
-          if (completionError) {
+          if (
+            completionError
+          ) {
             throw completionError;
           }
 
@@ -388,7 +592,9 @@ export function useHabits() {
             data as HabitCompletionResult;
 
           setHabits(
-            (currentHabits) =>
+            (
+              currentHabits,
+            ) =>
               currentHabits.map(
                 (habit) =>
                   habit.id ===
@@ -426,8 +632,11 @@ export function useHabits() {
   const uncompleteHabit =
     useCallback(
       async (
-        habitId: string,
-      ): Promise<HabitUncompletionResult | null> => {
+        habitId:
+          string,
+      ): Promise<
+        HabitUncompletionResult | null
+      > => {
         try {
           setUncompletingHabitId(
             habitId,
@@ -439,15 +648,18 @@ export function useHabits() {
             data,
             error:
               uncompleteError,
-          } = await supabase.rpc(
-            "uncomplete_habit",
-            {
-              p_habit_id:
-                habitId,
-            },
-          );
+          } =
+            await supabase.rpc(
+              "uncomplete_habit",
+              {
+                p_habit_id:
+                  habitId,
+              },
+            );
 
-          if (uncompleteError) {
+          if (
+            uncompleteError
+          ) {
             throw uncompleteError;
           }
 
@@ -455,7 +667,9 @@ export function useHabits() {
             data as HabitUncompletionResult;
 
           setHabits(
-            (currentHabits) =>
+            (
+              currentHabits,
+            ) =>
               currentHabits.map(
                 (habit) =>
                   habit.id ===
@@ -493,33 +707,51 @@ export function useHabits() {
   const updateHabit =
     useCallback(
       async (
-        habitId: string,
-        input: UpdateHabitInput,
+        habitId:
+          string,
+
+        input:
+          UpdateHabitInput,
       ): Promise<boolean> => {
         try {
-          setUpdatingHabitId(habitId);
+          setUpdatingHabitId(
+            habitId,
+          );
+
           setError(null);
 
           const {
             data,
-            error: updateError,
-          } = await supabase.rpc(
-            "update_habit",
-            {
-              p_habit_id: habitId,
-              p_title: input.title.trim(),
-              p_description:
-                input.description.trim(),
-              p_icon:
-                input.icon || "🌱",
-              p_frequency:
-                input.frequency,
-              p_target_per_week:
-                input.targetPerWeek,
-            },
-          );
+            error:
+              updateError,
+          } =
+            await supabase.rpc(
+              "update_habit",
+              {
+                p_habit_id:
+                  habitId,
 
-          if (updateError) {
+                p_title:
+                  input.title.trim(),
+
+                p_description:
+                  input.description.trim(),
+
+                p_icon:
+                  input.icon ||
+                  "🌱",
+
+                p_frequency:
+                  input.frequency,
+
+                p_target_per_week:
+                  input.targetPerWeek,
+              },
+            );
+
+          if (
+            updateError
+          ) {
             throw updateError;
           }
 
@@ -529,24 +761,36 @@ export function useHabits() {
             );
           }
 
-          setHabits((currentHabits) =>
-            currentHabits.map((habit) =>
-              habit.id === habitId
-                ? {
-                    ...habit,
-                    title: input.title.trim(),
-                    description:
-                      input.description.trim() ||
-                      null,
-                    icon:
-                      input.icon || "🌱",
-                    frequency:
-                      input.frequency,
-                    target_per_week:
-                      input.targetPerWeek,
-                  }
-                : habit,
-            ),
+          setHabits(
+            (
+              currentHabits,
+            ) =>
+              currentHabits.map(
+                (habit) =>
+                  habit.id ===
+                  habitId
+                    ? {
+                        ...habit,
+
+                        title:
+                          input.title.trim(),
+
+                        description:
+                          input.description.trim() ||
+                          null,
+
+                        icon:
+                          input.icon ||
+                          "🌱",
+
+                        frequency:
+                          input.frequency,
+
+                        target_per_week:
+                          input.targetPerWeek,
+                      }
+                    : habit,
+              ),
           );
 
           return true;
@@ -557,7 +801,9 @@ export function useHabits() {
 
           return false;
         } finally {
-          setUpdatingHabitId(null);
+          setUpdatingHabitId(
+            null,
+          );
         }
       },
       [supabase],
@@ -570,23 +816,32 @@ export function useHabits() {
   const archiveHabit =
     useCallback(
       async (
-        habitId: string,
+        habitId:
+          string,
       ): Promise<boolean> => {
         try {
-          setArchivingHabitId(habitId);
+          setArchivingHabitId(
+            habitId,
+          );
+
           setError(null);
 
           const {
             data,
-            error: archiveError,
-          } = await supabase.rpc(
-            "archive_habit",
-            {
-              p_habit_id: habitId,
-            },
-          );
+            error:
+              archiveError,
+          } =
+            await supabase.rpc(
+              "archive_habit",
+              {
+                p_habit_id:
+                  habitId,
+              },
+            );
 
-          if (archiveError) {
+          if (
+            archiveError
+          ) {
             throw archiveError;
           }
 
@@ -596,12 +851,18 @@ export function useHabits() {
             );
           }
 
-          setHabits((currentHabits) =>
-            currentHabits.filter(
-              (habit) =>
-                habit.id !== habitId,
-            ),
+          setHabits(
+            (
+              currentHabits,
+            ) =>
+              currentHabits.filter(
+                (habit) =>
+                  habit.id !==
+                  habitId,
+              ),
           );
+
+          await loadArchivedHabits();
 
           return true;
         } catch {
@@ -611,10 +872,89 @@ export function useHabits() {
 
           return false;
         } finally {
-          setArchivingHabitId(null);
+          setArchivingHabitId(
+            null,
+          );
         }
       },
-      [supabase],
+      [
+        loadArchivedHabits,
+        supabase,
+      ],
+    );
+
+  // =================================
+  // RESTORE HABIT
+  // =================================
+
+  const restoreHabit =
+    useCallback(
+      async (
+        habitId:
+          string,
+      ): Promise<boolean> => {
+        try {
+          setRestoringHabitId(
+            habitId,
+          );
+
+          setError(null);
+
+          const {
+            data,
+            error:
+              restoreError,
+          } =
+            await supabase.rpc(
+              "restore_habit",
+              {
+                p_habit_id:
+                  habitId,
+              },
+            );
+
+          if (
+            restoreError
+          ) {
+            throw restoreError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Habit was not restored.",
+            );
+          }
+
+          setArchivedHabits(
+            (
+              current,
+            ) =>
+              current.filter(
+                (habit) =>
+                  habit.id !==
+                  habitId,
+              ),
+          );
+
+          await loadHabits();
+
+          return true;
+        } catch {
+          setError(
+            "Unable to restore habit.",
+          );
+
+          return false;
+        } finally {
+          setRestoringHabitId(
+            null,
+          );
+        }
+      },
+      [
+        loadHabits,
+        supabase,
+      ],
     );
 
   // =================================
@@ -624,23 +964,32 @@ export function useHabits() {
   const deleteHabit =
     useCallback(
       async (
-        habitId: string,
+        habitId:
+          string,
       ): Promise<boolean> => {
         try {
-          setDeletingHabitId(habitId);
+          setDeletingHabitId(
+            habitId,
+          );
+
           setError(null);
 
           const {
             data,
-            error: deleteError,
-          } = await supabase.rpc(
-            "delete_habit",
-            {
-              p_habit_id: habitId,
-            },
-          );
+            error:
+              deleteError,
+          } =
+            await supabase.rpc(
+              "delete_habit",
+              {
+                p_habit_id:
+                  habitId,
+              },
+            );
 
-          if (deleteError) {
+          if (
+            deleteError
+          ) {
             throw deleteError;
           }
 
@@ -650,11 +999,22 @@ export function useHabits() {
             );
           }
 
-          setHabits((currentHabits) =>
-            currentHabits.filter(
-              (habit) =>
-                habit.id !== habitId,
-            ),
+          setHabits(
+            (current) =>
+              current.filter(
+                (habit) =>
+                  habit.id !==
+                  habitId,
+              ),
+          );
+
+          setArchivedHabits(
+            (current) =>
+              current.filter(
+                (habit) =>
+                  habit.id !==
+                  habitId,
+              ),
           );
 
           return true;
@@ -665,14 +1025,16 @@ export function useHabits() {
 
           return false;
         } finally {
-          setDeletingHabitId(null);
+          setDeletingHabitId(
+            null,
+          );
         }
       },
       [supabase],
     );
 
   // =================================
-  // AUTOMATIC INITIAL LOAD
+  // INITIAL LOAD
   // =================================
 
   useEffect(() => {
@@ -681,26 +1043,39 @@ export function useHabits() {
   }, [loadHabits]);
 
   // =================================
-  // HOOK RESULT
+  // RESULT
   // =================================
 
   return {
     habits,
+    archivedHabits,
+
     loading,
+    loadingArchived,
+
     error,
+
     creatingHabit,
     completingHabitId,
     uncompletingHabitId,
     updatingHabitId,
     archivingHabitId,
+    restoringHabitId,
     deletingHabitId,
+
     createHabit,
     completeHabit,
     uncompleteHabit,
     updateHabit,
+
     archiveHabit,
+    restoreHabit,
     deleteHabit,
+
     refreshHabits:
       loadHabits,
+
+    refreshArchivedHabits:
+      loadArchivedHabits,
   };
 }

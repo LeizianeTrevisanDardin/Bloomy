@@ -335,13 +335,34 @@ function getAutomaticScene({
     95, 96, 99,
   ];
 
-  // Snow and rain take priority at any time of day.
+  // =================================
+  // AURORA
+  // =================================
+  // At night, aurora takes priority
+  // over rain/clouds when probability
+  // is at least 10%.
+
+  if (
+    !isDay &&
+    auroraProbability >= 10
+  ) {
+    return "aurora";
+  }
+
+  // =================================
+  // SNOW
+  // =================================
+
   if (
     snowfall > 0 ||
     snowCodes.includes(weatherCode)
   ) {
     return "snowy";
   }
+
+  // =================================
+  // RAIN
+  // =================================
 
   if (
     precipitation > 0 ||
@@ -352,25 +373,28 @@ function getAutomaticScene({
     return "rainy";
   }
 
-  if (
-    !isDay &&
-    auroraProbability >= 10 &&
-    cloudCover <= 65
-  ) {
-    return "aurora";
-  }
+  // =================================
+  // NIGHT
+  // =================================
 
   if (!isDay) {
     return "night";
   }
 
-  // Cloudy weather takes priority over sunrise and sunset.
+  // =================================
+  // CLOUDY
+  // =================================
+
   if (
     [2, 3, 45, 48].includes(weatherCode) ||
     cloudCover >= 40
   ) {
     return "cloudy";
   }
+
+  // =================================
+  // SUNRISE / SUNSET
+  // =================================
 
   const currentMinutes =
     minutesFromDateString(currentTime);
@@ -396,6 +420,10 @@ function getAutomaticScene({
   ) {
     return "sunset";
   }
+
+  // =================================
+  // SUNNY
+  // =================================
 
   return "sunny";
 }

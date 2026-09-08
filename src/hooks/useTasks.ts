@@ -6,7 +6,9 @@ import {
   useState,
 } from "react";
 
-import { createClient } from "@/lib/supabase/client";
+import {
+  createClient,
+} from "@/lib/supabase/client";
 
 import type {
   CreateTaskInput,
@@ -26,387 +28,901 @@ export type UpdateTaskInput = {
 };
 
 const taskRewards = {
-  easy: { xp: 30, coins: 5 },
-  medium: { xp: 50, coins: 10 },
-  hard: { xp: 80, coins: 15 },
+  easy: {
+    xp: 30,
+    coins: 5,
+  },
+
+  medium: {
+    xp: 50,
+    coins: 10,
+  },
+
+  hard: {
+    xp: 80,
+    coins: 15,
+  },
 } satisfies Record<
   TaskDifficulty,
-  { xp: number; coins: number }
+  {
+    xp: number;
+    coins: number;
+  }
 >;
 
+const TASK_COLUMNS = `
+  id,
+  user_id,
+  title,
+  description,
+  due_date,
+  priority,
+  difficulty,
+  xp_reward,
+  coin_reward,
+  position,
+  is_archived,
+  is_completed,
+  completed_at,
+  created_at,
+  updated_at
+`;
+
 export function useTasks() {
-  const [supabase] = useState(() => createClient());
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [creatingTask, setCreatingTask] = useState(false);
+  const [supabase] =
+    useState(
+      () => createClient(),
+    );
+
+  // =================================
+  // STATE
+  // =================================
+
+  const [
+    tasks,
+    setTasks,
+  ] =
+    useState<Task[]>([]);
+
+  const [
+    archivedTasks,
+    setArchivedTasks,
+  ] =
+    useState<Task[]>([]);
+
+  const [
+    loading,
+    setLoading,
+  ] =
+    useState(true);
+
+  const [
+    loadingArchived,
+    setLoadingArchived,
+  ] =
+    useState(false);
+
+  const [
+    error,
+    setError,
+  ] =
+    useState<
+      string | null
+    >(null);
+
+  const [
+    creatingTask,
+    setCreatingTask,
+  ] =
+    useState(false);
 
   const [
     completingTaskId,
     setCompletingTaskId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     uncompletingTaskId,
     setUncompletingTaskId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     updatingTaskId,
     setUpdatingTaskId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     archivingTaskId,
     setArchivingTaskId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
+
+  const [
+    restoringTaskId,
+    setRestoringTaskId,
+  ] =
+    useState<
+      string | null
+    >(null);
 
   const [
     deletingTaskId,
     setDeletingTaskId,
-  ] = useState<string | null>(null);
+  ] =
+    useState<
+      string | null
+    >(null);
 
   // =================================
-  // LOAD TASKS
+  // LOAD ACTIVE TASKS
   // =================================
 
-  const loadTasks = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const loadTasks =
+    useCallback(async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const {
-        data: userData,
-        error: userError,
-      } = await supabase.auth.getUser();
+        const {
+          data:
+            userData,
+          error:
+            userError,
+        } =
+          await supabase.auth.getUser();
 
-      if (userError || !userData.user) {
+        if (
+          userError ||
+          !userData.user
+        ) {
+          setTasks([]);
+
+          setError(
+            "User session not found.",
+          );
+
+          return;
+        }
+
+        const {
+          data,
+          error:
+            tasksError,
+        } =
+          await supabase
+            .from(
+              "tasks",
+            )
+            .select(TASK_COLUMNS)
+            .eq(
+              "user_id",
+              userData
+                .user
+                .id,
+            )
+            .eq(
+              "is_archived",
+              false,
+            )
+            .order(
+              "is_completed",
+              {
+                ascending:
+                  true,
+              },
+            )
+            .order(
+              "position",
+              {
+                ascending:
+                  true,
+              },
+            )
+            .order(
+              "created_at",
+              {
+                ascending:
+                  false,
+              },
+            );
+
+        if (
+          tasksError
+        ) {
+          throw tasksError;
+        }
+
+        setTasks(
+          (data ??
+            []) as Task[],
+        );
+      } catch {
         setTasks([]);
-        setError("User session not found.");
-        return;
+
+        setError(
+          "Unable to load tasks.",
+        );
+      } finally {
+        setLoading(false);
       }
+    }, [
+      supabase,
+    ]);
 
-      const {
-        data,
-        error: tasksError,
-      } = await supabase
-        .from("tasks")
-        .select(
-          `
-            id,
-            user_id,
-            title,
-            description,
-            due_date,
-            priority,
-            difficulty,
-            xp_reward,
-            coin_reward,
-            position,
-            is_archived,
-            is_completed,
-            completed_at,
-            created_at,
-            updated_at
-          `,
-        )
-        .eq("user_id", userData.user.id)
-        .eq("is_archived", false)
-        .order("is_completed", { ascending: true })
-        .order("position", { ascending: true })
-        .order("created_at", { ascending: false });
+  // =================================
+  // LOAD ARCHIVED TASKS
+  // =================================
 
-      if (tasksError) {
-        throw tasksError;
+  const loadArchivedTasks =
+    useCallback(async () => {
+      try {
+        setLoadingArchived(
+          true,
+        );
+
+        setError(null);
+
+        const {
+          data:
+            userData,
+          error:
+            userError,
+        } =
+          await supabase.auth.getUser();
+
+        if (
+          userError ||
+          !userData.user
+        ) {
+          setArchivedTasks(
+            [],
+          );
+
+          setError(
+            "User session not found.",
+          );
+
+          return;
+        }
+
+        const {
+          data,
+          error:
+            tasksError,
+        } =
+          await supabase
+            .from(
+              "tasks",
+            )
+            .select(TASK_COLUMNS)
+            .eq(
+              "user_id",
+              userData
+                .user
+                .id,
+            )
+            .eq(
+              "is_archived",
+              true,
+            )
+            .order(
+              "updated_at",
+              {
+                ascending:
+                  false,
+              },
+            );
+
+        if (
+          tasksError
+        ) {
+          throw tasksError;
+        }
+
+        setArchivedTasks(
+          (data ??
+            []) as Task[],
+        );
+      } catch {
+        setArchivedTasks(
+          [],
+        );
+
+        setError(
+          "Unable to load archived tasks.",
+        );
+      } finally {
+        setLoadingArchived(
+          false,
+        );
       }
-
-      setTasks((data ?? []) as Task[]);
-    } catch {
-      setTasks([]);
-      setError("Unable to load tasks.");
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+    }, [
+      supabase,
+    ]);
 
   // =================================
   // CREATE TASK
   // =================================
 
-  const createTask = useCallback(
-    async (
-      input: CreateTaskInput,
-    ): Promise<Task | null> => {
-      try {
-        setCreatingTask(true);
-        setError(null);
+  const createTask =
+    useCallback(
+      async (
+        input:
+          CreateTaskInput,
+      ): Promise<
+        Task | null
+      > => {
+        try {
+          setCreatingTask(
+            true,
+          );
 
-        const {
-          data,
-          error: createError,
-        } = await supabase.rpc("create_task", {
-          p_title: input.title,
-          p_description: input.description || null,
-          p_due_date: input.dueDate || null,
-          p_priority: input.priority,
-          p_difficulty: input.difficulty,
-        });
+          setError(null);
 
-        if (createError) {
-          throw createError;
+          const {
+            data,
+            error:
+              createError,
+          } =
+            await supabase.rpc(
+              "create_task",
+              {
+                p_title:
+                  input.title,
+
+                p_description:
+                  input.description ||
+                  null,
+
+                p_due_date:
+                  input.dueDate ||
+                  null,
+
+                p_priority:
+                  input.priority,
+
+                p_difficulty:
+                  input.difficulty,
+              },
+            );
+
+          if (
+            createError
+          ) {
+            throw createError;
+          }
+
+          await loadTasks();
+
+          return data as Task;
+        } catch {
+          setError(
+            "Unable to create task.",
+          );
+
+          return null;
+        } finally {
+          setCreatingTask(
+            false,
+          );
         }
-
-        await loadTasks();
-        return data as Task;
-      } catch {
-        setError("Unable to create task.");
-        return null;
-      } finally {
-        setCreatingTask(false);
-      }
-    },
-    [loadTasks, supabase],
-  );
+      },
+      [
+        loadTasks,
+        supabase,
+      ],
+    );
 
   // =================================
   // COMPLETE TASK
   // =================================
 
-  const completeTask = useCallback(
-    async (
-      taskId: string,
-    ): Promise<TaskCompletionResult | null> => {
-      try {
-        setCompletingTaskId(taskId);
-        setError(null);
+  const completeTask =
+    useCallback(
+      async (
+        taskId:
+          string,
+      ): Promise<
+        TaskCompletionResult | null
+      > => {
+        try {
+          setCompletingTaskId(
+            taskId,
+          );
 
-        const {
-          data,
-          error: completionError,
-        } = await supabase.rpc("complete_task", {
-          p_task_id: taskId,
-        });
+          setError(null);
 
-        if (completionError) {
-          throw completionError;
+          const {
+            data,
+            error:
+              completionError,
+          } =
+            await supabase.rpc(
+              "complete_task",
+              {
+                p_task_id:
+                  taskId,
+              },
+            );
+
+          if (
+            completionError
+          ) {
+            throw completionError;
+          }
+
+          const result =
+            data as TaskCompletionResult;
+
+          setTasks(
+            (
+              currentTasks,
+            ) =>
+              currentTasks.map(
+                (task) =>
+                  task.id ===
+                  taskId
+                    ? {
+                        ...task,
+
+                        is_completed:
+                          true,
+
+                        completed_at:
+                          new Date().toISOString(),
+                      }
+                    : task,
+              ),
+          );
+
+          return result;
+        } catch {
+          setError(
+            "Unable to complete task.",
+          );
+
+          return null;
+        } finally {
+          setCompletingTaskId(
+            null,
+          );
         }
-
-        const result = data as TaskCompletionResult;
-
-        setTasks((currentTasks) =>
-          currentTasks.map((task) =>
-            task.id === taskId
-              ? {
-                  ...task,
-                  is_completed: true,
-                  completed_at: new Date().toISOString(),
-                }
-              : task,
-          ),
-        );
-
-        return result;
-      } catch {
-        setError("Unable to complete task.");
-        return null;
-      } finally {
-        setCompletingTaskId(null);
-      }
-    },
-    [supabase],
-  );
+      },
+      [supabase],
+    );
 
   // =================================
   // UNCOMPLETE TASK
   // =================================
 
-  const uncompleteTask = useCallback(
-    async (
-      taskId: string,
-    ): Promise<TaskUncompletionResult | null> => {
-      try {
-        setUncompletingTaskId(taskId);
-        setError(null);
+  const uncompleteTask =
+    useCallback(
+      async (
+        taskId:
+          string,
+      ): Promise<
+        TaskUncompletionResult | null
+      > => {
+        try {
+          setUncompletingTaskId(
+            taskId,
+          );
 
-        const {
-          data,
-          error: uncompleteError,
-        } = await supabase.rpc("uncomplete_task", {
-          p_task_id: taskId,
-        });
+          setError(null);
 
-        if (uncompleteError) {
-          throw uncompleteError;
+          const {
+            data,
+            error:
+              uncompleteError,
+          } =
+            await supabase.rpc(
+              "uncomplete_task",
+              {
+                p_task_id:
+                  taskId,
+              },
+            );
+
+          if (
+            uncompleteError
+          ) {
+            throw uncompleteError;
+          }
+
+          const result =
+            data as TaskUncompletionResult;
+
+          setTasks(
+            (
+              currentTasks,
+            ) =>
+              currentTasks.map(
+                (task) =>
+                  task.id ===
+                  taskId
+                    ? {
+                        ...task,
+
+                        is_completed:
+                          false,
+
+                        completed_at:
+                          null,
+                      }
+                    : task,
+              ),
+          );
+
+          return result;
+        } catch {
+          setError(
+            "Unable to undo task completion.",
+          );
+
+          return null;
+        } finally {
+          setUncompletingTaskId(
+            null,
+          );
         }
-
-        const result = data as TaskUncompletionResult;
-
-        setTasks((currentTasks) =>
-          currentTasks.map((task) =>
-            task.id === taskId
-              ? {
-                  ...task,
-                  is_completed: false,
-                  completed_at: null,
-                }
-              : task,
-          ),
-        );
-
-        return result;
-      } catch {
-        setError("Unable to undo task completion.");
-        return null;
-      } finally {
-        setUncompletingTaskId(null);
-      }
-    },
-    [supabase],
-  );
+      },
+      [supabase],
+    );
 
   // =================================
   // UPDATE TASK
   // =================================
 
-  const updateTask = useCallback(
-    async (
-      taskId: string,
-      input: UpdateTaskInput,
-    ): Promise<boolean> => {
-      try {
-        setUpdatingTaskId(taskId);
-        setError(null);
+  const updateTask =
+    useCallback(
+      async (
+        taskId:
+          string,
 
-        const {
-          data,
-          error: updateError,
-        } = await supabase.rpc("update_task", {
-          p_task_id: taskId,
-          p_title: input.title.trim(),
-          p_description: input.description.trim(),
-          p_due_date: input.dueDate || null,
-          p_priority: input.priority,
-          p_difficulty: input.difficulty,
-        });
+        input:
+          UpdateTaskInput,
+      ): Promise<boolean> => {
+        try {
+          setUpdatingTaskId(
+            taskId,
+          );
 
-        if (updateError) {
-          throw updateError;
+          setError(null);
+
+          const {
+            data,
+            error:
+              updateError,
+          } =
+            await supabase.rpc(
+              "update_task",
+              {
+                p_task_id:
+                  taskId,
+
+                p_title:
+                  input.title.trim(),
+
+                p_description:
+                  input.description.trim(),
+
+                p_due_date:
+                  input.dueDate ||
+                  null,
+
+                p_priority:
+                  input.priority,
+
+                p_difficulty:
+                  input.difficulty,
+              },
+            );
+
+          if (
+            updateError
+          ) {
+            throw updateError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Task was not updated.",
+            );
+          }
+
+          const reward =
+            taskRewards[
+              input.difficulty
+            ];
+
+          setTasks(
+            (
+              currentTasks,
+            ) =>
+              currentTasks.map(
+                (task) =>
+                  task.id ===
+                  taskId
+                    ? {
+                        ...task,
+
+                        title:
+                          input.title.trim(),
+
+                        description:
+                          input.description.trim() ||
+                          null,
+
+                        due_date:
+                          input.dueDate ||
+                          null,
+
+                        priority:
+                          input.priority,
+
+                        difficulty:
+                          input.difficulty,
+
+                        xp_reward:
+                          reward.xp,
+
+                        coin_reward:
+                          reward.coins,
+                      }
+                    : task,
+              ),
+          );
+
+          return true;
+        } catch {
+          setError(
+            "Unable to update task.",
+          );
+
+          return false;
+        } finally {
+          setUpdatingTaskId(
+            null,
+          );
         }
-
-        if (!data) {
-          throw new Error("Task was not updated.");
-        }
-
-        const reward = taskRewards[input.difficulty];
-
-        setTasks((currentTasks) =>
-          currentTasks.map((task) =>
-            task.id === taskId
-              ? {
-                  ...task,
-                  title: input.title.trim(),
-                  description:
-                    input.description.trim() || null,
-                  due_date: input.dueDate || null,
-                  priority: input.priority,
-                  difficulty: input.difficulty,
-                  xp_reward: reward.xp,
-                  coin_reward: reward.coins,
-                }
-              : task,
-          ),
-        );
-
-        return true;
-      } catch {
-        setError("Unable to update task.");
-        return false;
-      } finally {
-        setUpdatingTaskId(null);
-      }
-    },
-    [supabase],
-  );
+      },
+      [supabase],
+    );
 
   // =================================
   // ARCHIVE TASK
   // =================================
 
-  const archiveTask = useCallback(
-    async (taskId: string): Promise<boolean> => {
-      try {
-        setArchivingTaskId(taskId);
-        setError(null);
+  const archiveTask =
+    useCallback(
+      async (
+        taskId:
+          string,
+      ): Promise<boolean> => {
+        try {
+          setArchivingTaskId(
+            taskId,
+          );
 
-        const {
-          data,
-          error: archiveError,
-        } = await supabase.rpc("archive_task", {
-          p_task_id: taskId,
-        });
+          setError(null);
 
-        if (archiveError) {
-          throw archiveError;
+          const {
+            data,
+            error:
+              archiveError,
+          } =
+            await supabase.rpc(
+              "archive_task",
+              {
+                p_task_id:
+                  taskId,
+              },
+            );
+
+          if (
+            archiveError
+          ) {
+            throw archiveError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Task was not archived.",
+            );
+          }
+
+          setTasks(
+            (
+              currentTasks,
+            ) =>
+              currentTasks.filter(
+                (task) =>
+                  task.id !==
+                  taskId,
+              ),
+          );
+
+          await loadArchivedTasks();
+
+          return true;
+        } catch {
+          setError(
+            "Unable to archive task.",
+          );
+
+          return false;
+        } finally {
+          setArchivingTaskId(
+            null,
+          );
         }
+      },
+      [
+        loadArchivedTasks,
+        supabase,
+      ],
+    );
 
-        if (!data) {
-          throw new Error("Task was not archived.");
+  // =================================
+  // RESTORE TASK
+  // =================================
+
+  const restoreTask =
+    useCallback(
+      async (
+        taskId:
+          string,
+      ): Promise<boolean> => {
+        try {
+          setRestoringTaskId(
+            taskId,
+          );
+
+          setError(null);
+
+          const {
+            data,
+            error:
+              restoreError,
+          } =
+            await supabase.rpc(
+              "restore_task",
+              {
+                p_task_id:
+                  taskId,
+              },
+            );
+
+          if (
+            restoreError
+          ) {
+            throw restoreError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Task was not restored.",
+            );
+          }
+
+          setArchivedTasks(
+            (
+              current,
+            ) =>
+              current.filter(
+                (task) =>
+                  task.id !==
+                  taskId,
+              ),
+          );
+
+          await loadTasks();
+
+          return true;
+        } catch {
+          setError(
+            "Unable to restore task.",
+          );
+
+          return false;
+        } finally {
+          setRestoringTaskId(
+            null,
+          );
         }
-
-        setTasks((currentTasks) =>
-          currentTasks.filter((task) => task.id !== taskId),
-        );
-
-        return true;
-      } catch {
-        setError("Unable to archive task.");
-        return false;
-      } finally {
-        setArchivingTaskId(null);
-      }
-    },
-    [supabase],
-  );
+      },
+      [
+        loadTasks,
+        supabase,
+      ],
+    );
 
   // =================================
   // DELETE TASK
   // =================================
 
-  const deleteTask = useCallback(
-    async (taskId: string): Promise<boolean> => {
-      try {
-        setDeletingTaskId(taskId);
-        setError(null);
+  const deleteTask =
+    useCallback(
+      async (
+        taskId:
+          string,
+      ): Promise<boolean> => {
+        try {
+          setDeletingTaskId(
+            taskId,
+          );
 
-        const {
-          data,
-          error: deleteError,
-        } = await supabase.rpc("delete_task", {
-          p_task_id: taskId,
-        });
+          setError(null);
 
-        if (deleteError) {
-          throw deleteError;
+          const {
+            data,
+            error:
+              deleteError,
+          } =
+            await supabase.rpc(
+              "delete_task",
+              {
+                p_task_id:
+                  taskId,
+              },
+            );
+
+          if (
+            deleteError
+          ) {
+            throw deleteError;
+          }
+
+          if (!data) {
+            throw new Error(
+              "Task was not deleted.",
+            );
+          }
+
+          setTasks(
+            (current) =>
+              current.filter(
+                (task) =>
+                  task.id !==
+                  taskId,
+              ),
+          );
+
+          setArchivedTasks(
+            (current) =>
+              current.filter(
+                (task) =>
+                  task.id !==
+                  taskId,
+              ),
+          );
+
+          return true;
+        } catch {
+          setError(
+            "Unable to delete task.",
+          );
+
+          return false;
+        } finally {
+          setDeletingTaskId(
+            null,
+          );
         }
-
-        if (!data) {
-          throw new Error("Task was not deleted.");
-        }
-
-        setTasks((currentTasks) =>
-          currentTasks.filter((task) => task.id !== taskId),
-        );
-
-        return true;
-      } catch {
-        setError("Unable to delete task.");
-        return false;
-      } finally {
-        setDeletingTaskId(null);
-      }
-    },
-    [supabase],
-  );
+      },
+      [supabase],
+    );
 
   // =================================
   // INITIAL LOAD
@@ -417,22 +933,40 @@ export function useTasks() {
     void loadTasks();
   }, [loadTasks]);
 
+  // =================================
+  // RESULT
+  // =================================
+
   return {
     tasks,
+    archivedTasks,
+
     loading,
+    loadingArchived,
+
     error,
+
     creatingTask,
     completingTaskId,
     uncompletingTaskId,
     updatingTaskId,
     archivingTaskId,
+    restoringTaskId,
     deletingTaskId,
+
     createTask,
     completeTask,
     uncompleteTask,
     updateTask,
+
     archiveTask,
+    restoreTask,
     deleteTask,
-    refreshTasks: loadTasks,
+
+    refreshTasks:
+      loadTasks,
+
+    refreshArchivedTasks:
+      loadArchivedTasks,
   };
 }

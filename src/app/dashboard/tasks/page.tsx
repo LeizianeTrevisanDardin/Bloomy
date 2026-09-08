@@ -8,6 +8,7 @@ import {
   useTasks,
   type UpdateTaskInput,
 } from "@/hooks/useTasks";
+
 import type {
   Task,
   TaskDifficulty,
@@ -29,114 +30,313 @@ const difficultyRewards: Record<
 };
 
 export default function TasksPage() {
+  // =================================
+  // TASKS
+  // =================================
+
   const {
     tasks,
+    archivedTasks,
+
     loading,
+    loadingArchived,
     error,
+
     updatingTaskId,
     archivingTaskId,
+    restoringTaskId,
     deletingTaskId,
+
     updateTask,
     archiveTask,
+    restoreTask,
     deleteTask,
+
+    refreshArchivedTasks,
   } = useTasks();
 
-  const [editingTask, setEditingTask] =
-    useState<Task | null>(null);
-  const [form, setForm] =
-    useState<UpdateTaskInput | null>(null);
-  const [formError, setFormError] =
-    useState<string | null>(null);
-  const [confirmation, setConfirmation] =
-    useState<ConfirmationAction | null>(null);
+  // =================================
+  // EDIT
+  // =================================
 
-  const openEditModal = (task: Task) => {
-    setEditingTask(task);
-    setForm({
-      title: task.title,
-      description: task.description ?? "",
-      dueDate: task.due_date ?? "",
-      priority: task.priority,
-      difficulty: task.difficulty,
-    });
-    setFormError(null);
-  };
+  const [
+    editingTask,
+    setEditingTask,
+  ] = useState<Task | null>(
+    null,
+  );
 
-  const closeEditModal = () => {
-    if (updatingTaskId) return;
+  const [
+    form,
+    setForm,
+  ] =
+    useState<UpdateTaskInput | null>(
+      null,
+    );
 
-    setEditingTask(null);
-    setForm(null);
-    setFormError(null);
-  };
+  const [
+    formError,
+    setFormError,
+  ] =
+    useState<string | null>(
+      null,
+    );
 
-  const handleUpdate = async (
-    event: FormEvent<HTMLFormElement>,
+  // =================================
+  // CONFIRMATION
+  // =================================
+
+  const [
+    confirmation,
+    setConfirmation,
+  ] =
+    useState<ConfirmationAction | null>(
+      null,
+    );
+
+  // =================================
+  // ARCHIVED
+  // =================================
+
+  const [
+    showArchived,
+    setShowArchived,
+  ] = useState(false);
+
+  // =================================
+  // OPEN EDIT
+  // =================================
+
+  const openEditModal = (
+    task: Task,
   ) => {
-    event.preventDefault();
+    setEditingTask(task);
 
-    if (!editingTask || !form) return;
+    setForm({
+      title:
+        task.title,
 
-    const title = form.title.trim();
+      description:
+        task.description ??
+        "",
 
-    if (title.length < 2) {
-      setFormError(
-        "Enter a task name with at least 2 characters.",
-      );
-      return;
-    }
+      dueDate:
+        task.due_date ??
+        "",
 
-    setFormError(null);
+      priority:
+        task.priority,
 
-    const updated = await updateTask(editingTask.id, {
-      ...form,
-      title,
-      description: form.description.trim(),
+      difficulty:
+        task.difficulty,
     });
 
-    if (!updated) {
-      setFormError(
-        "Unable to update the task. Please try again.",
+    setFormError(null);
+  };
+
+  // =================================
+  // CLOSE EDIT
+  // =================================
+
+  const closeEditModal =
+    () => {
+      if (
+        updatingTaskId
+      ) {
+        return;
+      }
+
+      setEditingTask(
+        null,
       );
-      return;
-    }
 
-    closeEditModal();
-  };
+      setForm(null);
 
-  const handleConfirmAction = async () => {
-    if (!confirmation) return;
+      setFormError(
+        null,
+      );
+    };
 
-    const { type, task } = confirmation;
+  // =================================
+  // UPDATE TASK
+  // =================================
 
-    const succeeded =
-      type === "archive"
-        ? await archiveTask(task.id)
-        : await deleteTask(task.id);
+  const handleUpdate =
+    async (
+      event:
+        FormEvent<HTMLFormElement>,
+    ) => {
+      event.preventDefault();
 
-    if (succeeded) {
-      setConfirmation(null);
-    }
-  };
+      if (
+        !editingTask ||
+        !form
+      ) {
+        return;
+      }
 
-  const completedCount = tasks.filter(
-    (task) => task.is_completed,
-  ).length;
-  const pendingCount = tasks.length - completedCount;
+      const title =
+        form.title.trim();
 
-  const overdueCount = tasks.filter((task) => {
-    if (!task.due_date || task.is_completed) return false;
+      if (
+        title.length < 2
+      ) {
+        setFormError(
+          "Enter a task name with at least 2 characters.",
+        );
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+        return;
+      }
 
-    const dueDate = new Date(`${task.due_date}T00:00:00`);
-    return dueDate < today;
-  }).length;
+      setFormError(null);
+
+      const updated =
+        await updateTask(
+          editingTask.id,
+          {
+            ...form,
+
+            title,
+
+            description:
+              form.description.trim(),
+          },
+        );
+
+      if (!updated) {
+        setFormError(
+          "Unable to update the task. Please try again.",
+        );
+
+        return;
+      }
+
+      closeEditModal();
+    };
+
+  // =================================
+  // CONFIRM ARCHIVE / DELETE
+  // =================================
+
+  const handleConfirmAction =
+    async () => {
+      if (
+        !confirmation
+      ) {
+        return;
+      }
+
+      const {
+        type,
+        task,
+      } = confirmation;
+
+      const succeeded =
+        type === "archive"
+          ? await archiveTask(
+              task.id,
+            )
+          : await deleteTask(
+              task.id,
+            );
+
+      if (succeeded) {
+        setConfirmation(
+          null,
+        );
+      }
+    };
+
+  // =================================
+  // OPEN ARCHIVED
+  // =================================
+
+  const openArchived =
+    async () => {
+      setShowArchived(
+        true,
+      );
+
+      await refreshArchivedTasks();
+    };
+
+  // =================================
+  // RESTORE TASK
+  // =================================
+
+  const handleRestore =
+    async (
+      task: Task,
+    ) => {
+      if (
+        restoringTaskId ||
+        deletingTaskId
+      ) {
+        return;
+      }
+
+      await restoreTask(
+        task.id,
+      );
+    };
+
+  // =================================
+  // SUMMARY
+  // =================================
+
+  const completedCount =
+    tasks.filter(
+      (task) =>
+        task.is_completed,
+    ).length;
+
+  const pendingCount =
+    tasks.length -
+    completedCount;
+
+  const overdueCount =
+    tasks.filter(
+      (task) => {
+        if (
+          !task.due_date ||
+          task.is_completed
+        ) {
+          return false;
+        }
+
+        const today =
+          new Date();
+
+        today.setHours(
+          0,
+          0,
+          0,
+          0,
+        );
+
+        const dueDate =
+          new Date(
+            `${task.due_date}T00:00:00`,
+          );
+
+        return (
+          dueDate <
+          today
+        );
+      },
+    ).length;
+
+  // =================================
+  // RENDER
+  // =================================
 
   return (
     <main className="min-h-screen bg-[#0c0c0f] px-4 py-6 text-white sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
+        {/* ================================= */}
+        {/* HEADER */}
+        {/* ================================= */}
+
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Link
@@ -149,42 +349,120 @@ export default function TasksPage() {
             <p className="mt-7 text-xs font-medium uppercase tracking-[0.2em] text-purple-300">
               Daily focus
             </p>
+
             <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">
               📋 Manage Tasks
             </h1>
+
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
-              Update your tasks, change their priority and
-              difficulty, archive them for later, or permanently
+              Update your tasks,
+              change their priority
+              and difficulty,
+              archive them for
+              later, or permanently
               remove them.
             </p>
           </div>
 
-          <Link
-            href="/dashboard"
-            className="inline-flex h-11 items-center justify-center rounded-xl border border-purple-400/20 bg-purple-500/10 px-4 text-sm font-medium text-purple-200 transition hover:bg-purple-500/20"
-          >
-            + Add task on dashboard
-          </Link>
+          {/* HEADER ACTIONS */}
+
+          <div className="flex flex-col gap-2 sm:flex-row">
+            {/* ARCHIVED */}
+
+            <button
+              type="button"
+              onClick={() => {
+                void openArchived();
+              }}
+              className="
+                inline-flex
+                h-11
+                items-center
+                justify-center
+                rounded-xl
+                border
+                border-amber-400/20
+                bg-amber-500/5
+                px-4
+                text-sm
+                font-medium
+                text-amber-200
+                transition
+                hover:bg-amber-500/10
+              "
+            >
+              📦 Archived
+
+              {archivedTasks.length >
+                0 && (
+                <span className="ml-2 rounded-full bg-amber-400/10 px-2 py-0.5 text-xs">
+                  {
+                    archivedTasks.length
+                  }
+                </span>
+              )}
+            </button>
+
+            {/* ADD TASK */}
+
+            <Link
+              href="/dashboard"
+              className="
+                inline-flex
+                h-11
+                items-center
+                justify-center
+                rounded-xl
+                border
+                border-purple-400/20
+                bg-purple-500/10
+                px-4
+                text-sm
+                font-medium
+                text-purple-200
+                transition
+                hover:bg-purple-500/20
+              "
+            >
+              + Add task on dashboard
+            </Link>
+          </div>
         </header>
+
+        {/* ================================= */}
+        {/* SUMMARY */}
+        {/* ================================= */}
 
         <section className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <SummaryCard
             label="Pending tasks"
-            value={String(pendingCount)}
+            value={String(
+              pendingCount,
+            )}
             color="text-purple-300"
           />
+
           <SummaryCard
             label="Completed"
-            value={String(completedCount)}
+            value={String(
+              completedCount,
+            )}
             color="text-emerald-300"
           />
+
           <SummaryCard
             label="Overdue"
-            value={String(overdueCount)}
+            value={String(
+              overdueCount,
+            )}
             color="text-red-300"
             className="col-span-2 sm:col-span-1"
           />
         </section>
+
+        {/* ================================= */}
+        {/* ERROR */}
+        {/* ================================= */}
 
         {error && (
           <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
@@ -192,12 +470,21 @@ export default function TasksPage() {
           </div>
         )}
 
+        {/* ================================= */}
+        {/* ACTIVE TASKS */}
+        {/* ================================= */}
+
         <section className="mt-6 rounded-3xl border border-white/10 bg-white/[0.04] p-4 sm:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold">Your tasks</h2>
+              <h2 className="text-xl font-semibold">
+                Your tasks
+              </h2>
+
               <p className="mt-1 text-sm text-zinc-500">
-                Manage all non-archived tasks.
+                Manage all
+                non-archived
+                tasks.
               </p>
             </div>
 
@@ -206,167 +493,585 @@ export default function TasksPage() {
             </span>
           </div>
 
+          {/* LOADING */}
+
           {loading ? (
             <div className="space-y-3">
-              {[0, 1, 2].map((item) => (
-                <div
-                  key={item}
-                  className="h-32 animate-pulse rounded-2xl bg-white/5"
-                />
-              ))}
+              {[0, 1, 2].map(
+                (item) => (
+                  <div
+                    key={item}
+                    className="h-32 animate-pulse rounded-2xl bg-white/5"
+                  />
+                ),
+              )}
             </div>
-          ) : tasks.length === 0 ? (
+          ) : tasks.length ===
+            0 ? (
+            /* EMPTY */
+
             <div className="rounded-2xl border border-dashed border-white/10 px-5 py-14 text-center">
-              <div className="text-4xl">📋</div>
-              <h3 className="mt-4 font-medium">No tasks yet</h3>
+              <div className="text-4xl">
+                📋
+              </div>
+
+              <h3 className="mt-4 font-medium">
+                No tasks yet
+              </h3>
+
               <p className="mt-2 text-sm text-zinc-500">
-                Create a task from your dashboard to begin.
+                Create a task from
+                your dashboard to
+                begin.
               </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  void openArchived();
+                }}
+                className="mt-4 text-sm text-amber-300 transition hover:text-amber-200"
+              >
+                📦 View archived
+                tasks
+              </button>
             </div>
           ) : (
+            /* TASK LIST */
+
             <div className="grid gap-3 lg:grid-cols-2">
-              {tasks.map((task) => {
-                const isBusy =
-                  updatingTaskId === task.id ||
-                  archivingTaskId === task.id ||
-                  deletingTaskId === task.id;
+              {tasks.map(
+                (task) => {
+                  const isBusy =
+                    updatingTaskId ===
+                      task.id ||
+                    archivingTaskId ===
+                      task.id ||
+                    deletingTaskId ===
+                      task.id;
 
-                return (
-                  <article
-                    key={task.id}
-                    className={`rounded-2xl border p-4 transition sm:p-5 ${
-                      task.is_completed
-                        ? "border-emerald-400/15 bg-emerald-500/[0.04]"
-                        : "border-white/10 bg-black/20 hover:border-white/15 hover:bg-white/[0.035]"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-xl ${
-                          task.is_completed
-                            ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
-                            : "border-white/10 bg-white/5"
-                        }`}
-                      >
-                        {task.is_completed ? "✓" : "📄"}
-                      </div>
+                  return (
+                    <article
+                      key={
+                        task.id
+                      }
+                      className={`rounded-2xl border p-4 transition sm:p-5 ${
+                        task.is_completed
+                          ? "border-emerald-400/15 bg-emerald-500/[0.04]"
+                          : "border-white/10 bg-black/20 hover:border-white/15 hover:bg-white/[0.035]"
+                      }`}
+                    >
+                      {/* TOP */}
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3
-                            className={`font-medium ${
-                              task.is_completed
-                                ? "text-zinc-500 line-through"
-                                : "text-zinc-100"
-                            }`}
-                          >
-                            {task.title}
-                          </h3>
+                      <div className="flex items-start gap-3">
+                        {/* ICON */}
 
-                          {task.is_completed && (
-                            <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300">
-                              Completed
-                            </span>
-                          )}
+                        <div
+                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-xl ${
+                            task.is_completed
+                              ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                              : "border-white/10 bg-white/5"
+                          }`}
+                        >
+                          {task.is_completed
+                            ? "✓"
+                            : "📄"}
                         </div>
 
-                        <p className="mt-1 min-h-5 text-sm text-zinc-500">
-                          {task.description || "No description added."}
-                        </p>
+                        {/* INFO */}
 
-                        <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
-                          <span
-                            className={`rounded-lg border px-2 py-1 capitalize ${getPriorityClass(
-                              task.priority,
-                            )}`}
-                          >
-                            {task.priority} priority
-                          </span>
-                          <span className="rounded-lg bg-white/5 px-2 py-1 capitalize">
-                            {task.difficulty}
-                          </span>
-                          {task.due_date && (
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3
+                              className={`font-medium ${
+                                task.is_completed
+                                  ? "text-zinc-500 line-through"
+                                  : "text-zinc-100"
+                              }`}
+                            >
+                              {
+                                task.title
+                              }
+                            </h3>
+
+                            {task.is_completed && (
+                              <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300">
+                                Completed
+                              </span>
+                            )}
+                          </div>
+
+                          <p className="mt-1 min-h-5 text-sm text-zinc-500">
+                            {task.description ||
+                              "No description added."}
+                          </p>
+
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
+                            <span
+                              className={`rounded-lg border px-2 py-1 capitalize ${getPriorityClass(
+                                task.priority,
+                              )}`}
+                            >
+                              {
+                                task.priority
+                              }{" "}
+                              priority
+                            </span>
+
+                            <span className="rounded-lg bg-white/5 px-2 py-1 capitalize">
+                              {
+                                task.difficulty
+                              }
+                            </span>
+
+                            {task.due_date && (
+                              <span className="rounded-lg bg-white/5 px-2 py-1">
+                                📅{" "}
+                                {formatDueDate(
+                                  task.due_date,
+                                )}
+                              </span>
+                            )}
+
                             <span className="rounded-lg bg-white/5 px-2 py-1">
-                              📅 {formatDueDate(task.due_date)}
+                              +
+                              {
+                                task.xp_reward
+                              }{" "}
+                              XP
                             </span>
-                          )}
-                          <span className="rounded-lg bg-white/5 px-2 py-1">
-                            +{task.xp_reward} XP
-                          </span>
-                          <span className="rounded-lg bg-white/5 px-2 py-1">
-                            +{task.coin_reward} coins
-                          </span>
+
+                            <span className="rounded-lg bg-white/5 px-2 py-1">
+                              +
+                              {
+                                task.coin_reward
+                              }{" "}
+                              coins
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="mt-5 grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(task)}
-                        disabled={isBusy}
-                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setConfirmation({ type: "archive", task })
-                        }
-                        disabled={isBusy}
-                        className="rounded-xl border border-amber-400/15 bg-amber-500/5 px-3 py-2 text-xs text-amber-200 transition hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {archivingTaskId === task.id
-                          ? "Archiving..."
-                          : "📦 Archive"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setConfirmation({ type: "delete", task })
-                        }
-                        disabled={isBusy}
-                        className="rounded-xl border border-red-400/15 bg-red-500/5 px-3 py-2 text-xs text-red-200 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {deletingTaskId === task.id
-                          ? "Deleting..."
-                          : "🗑️ Delete"}
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
+                      {/* ACTIONS */}
+
+                      <div className="mt-5 grid grid-cols-3 gap-2">
+                        {/* EDIT */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openEditModal(
+                              task,
+                            )
+                          }
+                          disabled={
+                            isBusy
+                          }
+                          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          ✏️ Edit
+                        </button>
+
+                        {/* ARCHIVE */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setConfirmation(
+                              {
+                                type:
+                                  "archive",
+
+                                task,
+                              },
+                            )
+                          }
+                          disabled={
+                            isBusy
+                          }
+                          className="rounded-xl border border-amber-400/15 bg-amber-500/5 px-3 py-2 text-xs text-amber-200 transition hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {archivingTaskId ===
+                          task.id
+                            ? "Archiving..."
+                            : "📦 Archive"}
+                        </button>
+
+                        {/* DELETE */}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setConfirmation(
+                              {
+                                type:
+                                  "delete",
+
+                                task,
+                              },
+                            )
+                          }
+                          disabled={
+                            isBusy
+                          }
+                          className="rounded-xl border border-red-400/15 bg-red-500/5 px-3 py-2 text-xs text-red-200 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {deletingTaskId ===
+                          task.id
+                            ? "Deleting..."
+                            : "🗑️ Delete"}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                },
+              )}
             </div>
           )}
         </section>
       </div>
 
-      {editingTask && form && (
-        <EditTaskModal
-          form={form}
-          formError={formError}
-          loading={updatingTaskId === editingTask.id}
-          setForm={setForm}
-          onClose={closeEditModal}
-          onSubmit={(event) => void handleUpdate(event)}
-        />
+      {/* ================================= */}
+      {/* ARCHIVED TASKS MODAL */}
+      {/* ================================= */}
+
+      {showArchived && (
+        <div className="fixed inset-0 z-[240] flex items-center justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
+          {/* BACKDROP */}
+
+          <button
+            type="button"
+            aria-label="Close archived tasks"
+            onClick={() => {
+              setShowArchived(
+                false,
+              );
+            }}
+            className="absolute inset-0"
+          />
+
+          {/* MODAL */}
+
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="archived-tasks-title"
+            className="
+              relative
+              z-10
+              max-h-[85vh]
+              w-full
+              max-w-2xl
+              overflow-y-auto
+              rounded-3xl
+              border
+              border-white/10
+              bg-[#18181d]
+              p-5
+              shadow-2xl
+              sm:p-6
+            "
+          >
+            {/* HEADER */}
+
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-amber-300">
+                  Saved for later
+                </p>
+
+                <h2
+                  id="archived-tasks-title"
+                  className="mt-1 text-2xl font-semibold text-white"
+                >
+                  📦 Archived Tasks
+                </h2>
+
+                <p className="mt-2 text-sm text-zinc-500">
+                  Restore a task
+                  whenever you want
+                  to work on it
+                  again.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowArchived(
+                    false,
+                  );
+                }}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-white"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* LOADING */}
+
+            {loadingArchived && (
+              <div className="mt-6 space-y-3">
+                {[0, 1, 2].map(
+                  (item) => (
+                    <div
+                      key={
+                        item
+                      }
+                      className="h-28 animate-pulse rounded-2xl bg-white/5"
+                    />
+                  ),
+                )}
+              </div>
+            )}
+
+            {/* EMPTY */}
+
+            {!loadingArchived &&
+              archivedTasks.length ===
+                0 && (
+                <div className="mt-6 rounded-2xl border border-dashed border-white/10 px-5 py-14 text-center">
+                  <div className="text-4xl">
+                    📦
+                  </div>
+
+                  <h3 className="mt-4 font-medium text-white">
+                    No archived
+                    tasks
+                  </h3>
+
+                  <p className="mt-2 text-sm text-zinc-500">
+                    Tasks you
+                    archive will
+                    appear here.
+                  </p>
+                </div>
+              )}
+
+            {/* ARCHIVED LIST */}
+
+            {!loadingArchived &&
+              archivedTasks.length >
+                0 && (
+                <div className="mt-6 space-y-3">
+                  {archivedTasks.map(
+                    (
+                      task,
+                    ) => {
+                      const restoring =
+                        restoringTaskId ===
+                        task.id;
+
+                      const deleting =
+                        deletingTaskId ===
+                        task.id;
+
+                      const busy =
+                        restoring ||
+                        deleting;
+
+                      return (
+                        <article
+                          key={
+                            task.id
+                          }
+                          className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-5"
+                        >
+                          {/* INFO */}
+
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl">
+                              📄
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="font-medium text-zinc-100">
+                                  {
+                                    task.title
+                                  }
+                                </h3>
+
+                                {task.is_completed && (
+                                  <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300">
+                                    Completed
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="mt-1 text-sm text-zinc-500">
+                                {task.description ||
+                                  "No description added."}
+                              </p>
+
+                              <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
+                                <span
+                                  className={`rounded-lg border px-2 py-1 capitalize ${getPriorityClass(
+                                    task.priority,
+                                  )}`}
+                                >
+                                  {
+                                    task.priority
+                                  }{" "}
+                                  priority
+                                </span>
+
+                                <span className="rounded-lg bg-white/5 px-2 py-1 capitalize">
+                                  {
+                                    task.difficulty
+                                  }
+                                </span>
+
+                                {task.due_date && (
+                                  <span className="rounded-lg bg-white/5 px-2 py-1">
+                                    📅{" "}
+                                    {formatDueDate(
+                                      task.due_date,
+                                    )}
+                                  </span>
+                                )}
+
+                                <span className="rounded-lg bg-white/5 px-2 py-1">
+                                  +
+                                  {
+                                    task.xp_reward
+                                  }{" "}
+                                  XP
+                                </span>
+
+                                <span className="rounded-lg bg-white/5 px-2 py-1">
+                                  +
+                                  {
+                                    task.coin_reward
+                                  }{" "}
+                                  coins
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* ACTIONS */}
+
+                          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                            {/* DELETE */}
+
+                            <button
+                              type="button"
+                              disabled={
+                                busy
+                              }
+                              onClick={() => {
+                                setConfirmation(
+                                  {
+                                    type:
+                                      "delete",
+
+                                    task,
+                                  },
+                                );
+                              }}
+                              className="rounded-xl border border-red-400/15 bg-red-500/5 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {deleting
+                                ? "Deleting..."
+                                : "🗑️ Delete permanently"}
+                            </button>
+
+                            {/* RESTORE */}
+
+                            <button
+                              type="button"
+                              disabled={
+                                busy
+                              }
+                              onClick={() => {
+                                void handleRestore(
+                                  task,
+                                );
+                              }}
+                              className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-2.5 text-sm font-medium text-emerald-300 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {restoring
+                                ? "Restoring..."
+                                : "↩ Restore"}
+                            </button>
+                          </div>
+                        </article>
+                      );
+                    },
+                  )}
+                </div>
+              )}
+          </div>
+        </div>
       )}
+
+      {/* ================================= */}
+      {/* EDIT TASK MODAL */}
+      {/* ================================= */}
+
+      {editingTask &&
+        form && (
+          <EditTaskModal
+            form={form}
+            formError={
+              formError
+            }
+            loading={
+              updatingTaskId ===
+              editingTask.id
+            }
+            setForm={
+              setForm
+            }
+            onClose={
+              closeEditModal
+            }
+            onSubmit={(
+              event,
+            ) => {
+              void handleUpdate(
+                event,
+              );
+            }}
+          />
+        )}
+
+      {/* ================================= */}
+      {/* CONFIRMATION */}
+      {/* ================================= */}
 
       {confirmation && (
         <ConfirmationModal
-          action={confirmation}
-          loading={
-            archivingTaskId === confirmation.task.id ||
-            deletingTaskId === confirmation.task.id
+          action={
+            confirmation
           }
-          onCancel={() => setConfirmation(null)}
-          onConfirm={() => void handleConfirmAction()}
+          loading={
+            archivingTaskId ===
+              confirmation
+                .task.id ||
+            deletingTaskId ===
+              confirmation
+                .task.id
+          }
+          onCancel={() => {
+            setConfirmation(
+              null,
+            );
+          }}
+          onConfirm={() => {
+            void handleConfirmAction();
+          }}
         />
       )}
     </main>
   );
 }
+
+// =================================
+// EDIT TASK MODAL
+// =================================
 
 function EditTaskModal({
   form,
@@ -376,147 +1081,302 @@ function EditTaskModal({
   onClose,
   onSubmit,
 }: {
-  form: UpdateTaskInput;
-  formError: string | null;
-  loading: boolean;
-  setForm: (form: UpdateTaskInput) => void;
-  onClose: () => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  form:
+    UpdateTaskInput;
+
+  formError:
+    string | null;
+
+  loading:
+    boolean;
+
+  setForm:
+    (
+      form:
+        UpdateTaskInput,
+    ) => void;
+
+  onClose:
+    () => void;
+
+  onSubmit:
+    (
+      event:
+        FormEvent<HTMLFormElement>,
+    ) => void;
 }) {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm">
+      {/* BACKDROP */}
+
       <button
         type="button"
         aria-label="Close edit modal"
-        onClick={onClose}
-        disabled={loading}
+        onClick={
+          onClose
+        }
+        disabled={
+          loading
+        }
         className="absolute inset-0"
       />
 
+      {/* MODAL */}
+
       <div className="relative z-10 w-full max-w-lg rounded-3xl border border-white/10 bg-[#18181d] p-5 shadow-2xl sm:p-6">
+        {/* HEADER */}
+
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-purple-300">
               Update your plan
             </p>
+
             <h2 className="mt-1 text-2xl font-semibold">
               Edit task
             </h2>
           </div>
+
           <button
             type="button"
-            onClick={onClose}
-            disabled={loading}
+            onClick={
+              onClose
+            }
+            disabled={
+              loading
+            }
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
           >
             ✕
           </button>
         </div>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        {/* FORM */}
+
+        <form
+          onSubmit={
+            onSubmit
+          }
+          className="mt-6 space-y-4"
+        >
+          {/* NAME */}
+
           <label className="block">
-            <span className="text-sm text-zinc-300">Task name</span>
+            <span className="text-sm text-zinc-300">
+              Task name
+            </span>
+
             <input
-              value={form.title}
-              onChange={(event) =>
-                setForm({ ...form, title: event.target.value })
+              value={
+                form.title
               }
-              maxLength={100}
+              onChange={(
+                event,
+              ) =>
+                setForm({
+                  ...form,
+
+                  title:
+                    event
+                      .target
+                      .value,
+                })
+              }
+              maxLength={
+                100
+              }
               className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none transition focus:border-purple-400/40"
             />
           </label>
 
+          {/* DESCRIPTION */}
+
           <label className="block">
-            <span className="text-sm text-zinc-300">Description</span>
+            <span className="text-sm text-zinc-300">
+              Description
+            </span>
+
             <textarea
-              value={form.description}
-              onChange={(event) =>
+              value={
+                form.description
+              }
+              onChange={(
+                event,
+              ) =>
                 setForm({
                   ...form,
-                  description: event.target.value,
+
+                  description:
+                    event
+                      .target
+                      .value,
                 })
               }
               rows={3}
-              maxLength={300}
+              maxLength={
+                300
+              }
               className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none transition focus:border-purple-400/40"
             />
           </label>
 
+          {/* DUE DATE */}
+
           <label className="block">
-            <span className="text-sm text-zinc-300">Due date</span>
+            <span className="text-sm text-zinc-300">
+              Due date
+            </span>
+
             <input
               type="date"
-              value={form.dueDate}
-              onChange={(event) =>
-                setForm({ ...form, dueDate: event.target.value })
+              value={
+                form.dueDate
+              }
+              onChange={(
+                event,
+              ) =>
+                setForm({
+                  ...form,
+
+                  dueDate:
+                    event
+                      .target
+                      .value,
+                })
               }
               className="mt-2 w-full rounded-xl border border-white/10 bg-[#111115] px-4 py-3 text-sm outline-none focus:border-purple-400/40"
             />
           </label>
 
+          {/* PRIORITY / DIFFICULTY */}
+
           <div className="grid gap-4 sm:grid-cols-2">
+            {/* PRIORITY */}
+
             <label className="block">
-              <span className="text-sm text-zinc-300">Priority</span>
+              <span className="text-sm text-zinc-300">
+                Priority
+              </span>
+
               <select
-                value={form.priority}
-                onChange={(event) =>
+                value={
+                  form.priority
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    priority: event.target.value as TaskPriority,
+
+                    priority:
+                      event
+                        .target
+                        .value as TaskPriority,
                   })
                 }
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#111115] px-4 py-3 text-sm outline-none focus:border-purple-400/40"
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">
+                  Low
+                </option>
+
+                <option value="medium">
+                  Medium
+                </option>
+
+                <option value="high">
+                  High
+                </option>
               </select>
             </label>
 
+            {/* DIFFICULTY */}
+
             <label className="block">
-              <span className="text-sm text-zinc-300">Difficulty</span>
+              <span className="text-sm text-zinc-300">
+                Difficulty
+              </span>
+
               <select
-                value={form.difficulty}
-                onChange={(event) =>
+                value={
+                  form.difficulty
+                }
+                onChange={(
+                  event,
+                ) =>
                   setForm({
                     ...form,
-                    difficulty: event.target.value as TaskDifficulty,
+
+                    difficulty:
+                      event
+                        .target
+                        .value as TaskDifficulty,
                   })
                 }
                 className="mt-2 w-full rounded-xl border border-white/10 bg-[#111115] px-4 py-3 text-sm outline-none focus:border-purple-400/40"
               >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
+                <option value="easy">
+                  Easy
+                </option>
+
+                <option value="medium">
+                  Medium
+                </option>
+
+                <option value="hard">
+                  Hard
+                </option>
               </select>
             </label>
           </div>
+
+          {/* REWARD */}
 
           <div className="rounded-xl border border-purple-400/10 bg-purple-500/5 p-3 text-xs text-purple-200">
-            Reward: {difficultyRewards[form.difficulty]}
+            Reward:{" "}
+            {
+              difficultyRewards[
+                form.difficulty
+              ]
+            }
           </div>
+
+          {/* ERROR */}
 
           {formError && (
             <p className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-200">
-              {formError}
+              {
+                formError
+              }
             </p>
           )}
+
+          {/* ACTIONS */}
 
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={onClose}
-              disabled={loading}
+              onClick={
+                onClose
+              }
+              disabled={
+                loading
+              }
               className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-zinc-300 transition hover:bg-white/5 disabled:opacity-50"
             >
               Cancel
             </button>
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading
+              }
               className="rounded-xl bg-purple-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-purple-400 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Saving..." : "Save changes"}
+              {loading
+                ? "Saving..."
+                : "Save changes"}
             </button>
           </div>
         </form>
@@ -525,34 +1385,64 @@ function EditTaskModal({
   );
 }
 
+// =================================
+// CONFIRMATION MODAL
+// =================================
+
 function ConfirmationModal({
   action,
   loading,
   onCancel,
   onConfirm,
 }: {
-  action: ConfirmationAction;
-  loading: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
+  action:
+    ConfirmationAction;
+
+  loading:
+    boolean;
+
+  onCancel:
+    () => void;
+
+  onConfirm:
+    () => void;
 }) {
-  const isDelete = action.type === "delete";
+  const isDelete =
+    action.type ===
+    "delete";
 
   return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+      {/* BACKDROP */}
+
       <button
         type="button"
         aria-label="Close confirmation"
-        onClick={onCancel}
-        disabled={loading}
+        onClick={
+          onCancel
+        }
+        disabled={
+          loading
+        }
         className="absolute inset-0"
       />
 
+      {/* MODAL */}
+
       <div className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#18181d] shadow-2xl shadow-black/50">
+        {/* TOP COLOR */}
+
         <div
-          className={`h-1 ${isDelete ? "bg-red-500" : "bg-amber-400"}`}
+          className={`h-1 ${
+            isDelete
+              ? "bg-red-500"
+              : "bg-amber-400"
+          }`}
         />
+
         <div className="p-6 sm:p-7">
+          {/* ICON */}
+
           <div
             className={`flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl ${
               isDelete
@@ -560,41 +1450,74 @@ function ConfirmationModal({
                 : "border-amber-400/20 bg-amber-500/10"
             }`}
           >
-            {isDelete ? "🗑️" : "📦"}
+            {isDelete
+              ? "🗑️"
+              : "📦"}
           </div>
+
+          {/* LABEL */}
 
           <p
             className={`mt-5 text-xs font-medium uppercase tracking-[0.18em] ${
-              isDelete ? "text-red-300" : "text-amber-300"
+              isDelete
+                ? "text-red-300"
+                : "text-amber-300"
             }`}
           >
-            {isDelete ? "Permanent action" : "Move to archive"}
+            {isDelete
+              ? "Permanent action"
+              : "Move to archive"}
           </p>
+
+          {/* TITLE */}
+
           <h2 className="mt-2 text-2xl font-semibold">
-            {isDelete ? "Delete task?" : "Archive task?"}
+            {isDelete
+              ? "Delete task?"
+              : "Archive task?"}
           </h2>
+
+          {/* DESCRIPTION */}
+
           <p className="mt-3 text-sm leading-6 text-zinc-400">
             <span className="font-medium text-zinc-200">
-              “{action.task.title}”
+              “
+              {
+                action.task
+                  .title
+              }
+              ”
             </span>{" "}
+
             {isDelete
               ? "will be permanently removed. This action cannot be undone."
               : "will leave your active list. You will be able to restore it from the archive later."}
           </p>
 
+          {/* ACTIONS */}
+
           <div className="mt-7 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button
               type="button"
-              onClick={onCancel}
-              disabled={loading}
+              onClick={
+                onCancel
+              }
+              disabled={
+                loading
+              }
               className="rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-zinc-300 transition hover:bg-white/10 disabled:opacity-50"
             >
               Cancel
             </button>
+
             <button
               type="button"
-              onClick={onConfirm}
-              disabled={loading}
+              onClick={
+                onConfirm
+              }
+              disabled={
+                loading
+              }
               className={`rounded-xl border px-5 py-2.5 text-sm font-medium text-white transition disabled:opacity-50 ${
                 isDelete
                   ? "border-red-400/20 bg-red-500/80 hover:bg-red-500"
@@ -616,41 +1539,93 @@ function ConfirmationModal({
   );
 }
 
+// =================================
+// SUMMARY CARD
+// =================================
+
 function SummaryCard({
   label,
   value,
   color,
   className = "",
 }: {
-  label: string;
-  value: string;
-  color: string;
-  className?: string;
+  label:
+    string;
+
+  value:
+    string;
+
+  color:
+    string;
+
+  className?:
+    string;
 }) {
   return (
     <div
       className={`rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5 ${className}`}
     >
-      <p className={`text-2xl font-semibold ${color}`}>{value}</p>
-      <p className="mt-1 text-xs text-zinc-500">{label}</p>
+      <p
+        className={`text-2xl font-semibold ${color}`}
+      >
+        {value}
+      </p>
+
+      <p className="mt-1 text-xs text-zinc-500">
+        {label}
+      </p>
     </div>
   );
 }
 
-function getPriorityClass(priority: TaskPriority) {
-  if (priority === "high") {
+// =================================
+// PRIORITY CLASS
+// =================================
+
+function getPriorityClass(
+  priority:
+    TaskPriority,
+) {
+  if (
+    priority ===
+    "high"
+  ) {
     return "border-red-400/20 bg-red-400/10 text-red-300";
   }
-  if (priority === "medium") {
+
+  if (
+    priority ===
+    "medium"
+  ) {
     return "border-amber-400/20 bg-amber-400/10 text-amber-300";
   }
+
   return "border-sky-400/20 bg-sky-400/10 text-sky-300";
 }
 
-function formatDueDate(dueDate: string) {
-  return new Intl.DateTimeFormat("en-CA", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${dueDate}T12:00:00`));
+// =================================
+// FORMAT DATE
+// =================================
+
+function formatDueDate(
+  dueDate:
+    string,
+) {
+  return new Intl.DateTimeFormat(
+    "en-CA",
+    {
+      month:
+        "short",
+
+      day:
+        "numeric",
+
+      year:
+        "numeric",
+    },
+  ).format(
+    new Date(
+      `${dueDate}T12:00:00`,
+    ),
+  );
 }
