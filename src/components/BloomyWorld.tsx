@@ -1,18 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useState,
+} from "react";
 
 import type {
   Scene,
 } from "@/types/weather";
 
 import MovingCharacter from "./MovingCharacter";
+import ShopDecorations from "./ShopDecorations";
 
 type RainSplash = {
   left: string;
   top: string;
   delay: string;
   duration: string;
+
   size:
     | "small"
     | "medium"
@@ -34,92 +38,93 @@ const scenes: Scene[] = [
   "aurora",
 ];
 
-const rainSplashes: RainSplash[] = [
-  {
-    left: "6%",
-    top: "70%",
-    delay: "0s",
-    duration: "1.3s",
-    size: "medium",
-  },
-  {
-    left: "14%",
-    top: "82%",
-    delay: "0.4s",
-    duration: "1.5s",
-    size: "large",
-  },
-  {
-    left: "22%",
-    top: "66%",
-    delay: "0.8s",
-    duration: "1.2s",
-    size: "small",
-  },
-  {
-    left: "30%",
-    top: "88%",
-    delay: "0.2s",
-    duration: "1.6s",
-    size: "medium",
-  },
-  {
-    left: "38%",
-    top: "74%",
-    delay: "1s",
-    duration: "1.4s",
-    size: "large",
-  },
-  {
-    left: "47%",
-    top: "84%",
-    delay: "0.6s",
-    duration: "1.3s",
-    size: "small",
-  },
-  {
-    left: "56%",
-    top: "68%",
-    delay: "1.2s",
-    duration: "1.5s",
-    size: "medium",
-  },
-  {
-    left: "64%",
-    top: "90%",
-    delay: "0.3s",
-    duration: "1.2s",
-    size: "large",
-  },
-  {
-    left: "72%",
-    top: "76%",
-    delay: "0.9s",
-    duration: "1.6s",
-    size: "medium",
-  },
-  {
-    left: "80%",
-    top: "86%",
-    delay: "0.5s",
-    duration: "1.3s",
-    size: "small",
-  },
-  {
-    left: "88%",
-    top: "72%",
-    delay: "1.1s",
-    duration: "1.4s",
-    size: "large",
-  },
-  {
-    left: "95%",
-    top: "91%",
-    delay: "0.7s",
-    duration: "1.5s",
-    size: "medium",
-  },
-];
+const rainSplashes: RainSplash[] =
+  [
+    {
+      left: "6%",
+      top: "70%",
+      delay: "0s",
+      duration: "1.3s",
+      size: "medium",
+    },
+    {
+      left: "14%",
+      top: "82%",
+      delay: "0.4s",
+      duration: "1.5s",
+      size: "large",
+    },
+    {
+      left: "22%",
+      top: "66%",
+      delay: "0.8s",
+      duration: "1.2s",
+      size: "small",
+    },
+    {
+      left: "30%",
+      top: "88%",
+      delay: "0.2s",
+      duration: "1.6s",
+      size: "medium",
+    },
+    {
+      left: "38%",
+      top: "74%",
+      delay: "1s",
+      duration: "1.4s",
+      size: "large",
+    },
+    {
+      left: "47%",
+      top: "84%",
+      delay: "0.6s",
+      duration: "1.3s",
+      size: "small",
+    },
+    {
+      left: "56%",
+      top: "68%",
+      delay: "1.2s",
+      duration: "1.5s",
+      size: "medium",
+    },
+    {
+      left: "64%",
+      top: "90%",
+      delay: "0.3s",
+      duration: "1.2s",
+      size: "large",
+    },
+    {
+      left: "72%",
+      top: "76%",
+      delay: "0.9s",
+      duration: "1.6s",
+      size: "medium",
+    },
+    {
+      left: "80%",
+      top: "86%",
+      delay: "0.5s",
+      duration: "1.3s",
+      size: "small",
+    },
+    {
+      left: "88%",
+      top: "72%",
+      delay: "1.1s",
+      duration: "1.4s",
+      size: "large",
+    },
+    {
+      left: "95%",
+      top: "91%",
+      delay: "0.7s",
+      duration: "1.5s",
+      size: "medium",
+    },
+  ];
 
 export default function BloomyWorld({
   automaticScene,
@@ -162,10 +167,13 @@ export default function BloomyWorld({
           <button
             type="button"
             onClick={() =>
-              setManualScene(null)
+              setManualScene(
+                null,
+              )
             }
             className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs transition ${
-              manualScene === null
+              manualScene ===
+              null
                 ? "border-emerald-400/30 bg-emerald-500/20 text-emerald-200"
                 : "border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
             }`}
@@ -175,24 +183,27 @@ export default function BloomyWorld({
 
           {/* MANUAL SCENES */}
 
-          {scenes.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() =>
-                setManualScene(
-                  item,
-                )
-              }
-              className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs capitalize transition ${
-                manualScene === item
-                  ? "border-purple-400/30 bg-purple-500/20 text-purple-200"
-                  : "border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
+          {scenes.map(
+            (item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() =>
+                  setManualScene(
+                    item,
+                  )
+                }
+                className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs capitalize transition ${
+                  manualScene ===
+                  item
+                    ? "border-purple-400/30 bg-purple-500/20 text-purple-200"
+                    : "border-white/[0.08] bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white"
+                }`}
+              >
+                {item}
+              </button>
+            ),
+          )}
         </div>
       )}
 
@@ -202,9 +213,14 @@ export default function BloomyWorld({
 
       <div className="bloomy-viewport relative h-[350px] w-full overflow-hidden bg-black sm:h-[420px] md:h-[470px] lg:h-[clamp(560px,45vw,700px)] 2xl:h-[720px]">
         {/*
-         * This stage keeps the original 3:2 scene ratio.
-         * Background, effects and characters are cropped together.
+         * This stage keeps the original
+         * 3:2 scene ratio.
+         *
+         * Background, effects,
+         * decorations and characters
+         * are cropped together.
          */}
+
         <div className="bloomy-stage">
           {/* ================================= */}
           {/* BACKGROUND */}
@@ -230,7 +246,8 @@ export default function BloomyWorld({
           {/* AURORA */}
           {/* ================================= */}
 
-          {scene === "aurora" && (
+          {scene ===
+            "aurora" && (
             <>
               {/* SVG WAVE FILTER */}
 
@@ -312,6 +329,14 @@ export default function BloomyWorld({
           )}
 
           {/* ================================= */}
+          {/* SHOP DECORATIONS */}
+          {/* ================================= */}
+
+          <div className="absolute inset-0 z-[8]">
+            <ShopDecorations />
+          </div>
+
+          {/* ================================= */}
           {/* CHARACTER AND DOG */}
           {/* ================================= */}
 
@@ -323,7 +348,8 @@ export default function BloomyWorld({
           {/* RAIN */}
           {/* ================================= */}
 
-          {scene === "rainy" && (
+          {scene ===
+            "rainy" && (
             <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
               {/* FALLING RAIN */}
 
@@ -365,10 +391,13 @@ export default function BloomyWorld({
           {/* SNOW */}
           {/* ================================= */}
 
-          {scene === "snowy" && (
+          {scene ===
+            "snowy" && (
             <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
               <div className="snow-layer snow-back" />
+
               <div className="snow-layer snow-middle" />
+
               <div className="snow-layer snow-front" />
             </div>
           )}
