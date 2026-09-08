@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 type CharacterSpriteProps = {
   src: string;
@@ -21,85 +24,150 @@ export default function CharacterSprite({
   speed = 150,
   paused = false,
 }: CharacterSpriteProps) {
-  const [frame, setFrame] = useState(0);
+  const [frame, setFrame] =
+    useState(0);
 
   useEffect(() => {
-    if (paused || frames <= 1) return;
+    if (
+      paused ||
+      frames <= 1
+    ) {
+      return;
+    }
 
-    let animationFrameId = 0;
-    let previousTime = performance.now();
-    let accumulatedTime = 0;
+    let animationFrameId =
+      0;
 
-    const animate = (currentTime: number) => {
-      const elapsed = Math.min(
-        currentTime - previousTime,
-        100,
-      );
+    let previousTime =
+      performance.now();
 
-      previousTime = currentTime;
-      accumulatedTime += elapsed;
+    let accumulatedTime =
+      0;
 
-      if (accumulatedTime >= speed) {
-        const framesToAdvance = Math.floor(
-          accumulatedTime / speed,
+    const animate = (
+      currentTime: number,
+    ) => {
+      const elapsed =
+        Math.min(
+          currentTime -
+            previousTime,
+          100,
         );
 
-        accumulatedTime %= speed;
+      previousTime =
+        currentTime;
+
+      accumulatedTime +=
+        elapsed;
+
+      if (
+        accumulatedTime >=
+        speed
+      ) {
+        const framesToAdvance =
+          Math.floor(
+            accumulatedTime /
+              speed,
+          );
+
+        accumulatedTime %=
+          speed;
 
         setFrame(
           (current) =>
-            (current + framesToAdvance) % frames,
+            (current +
+              framesToAdvance) %
+            frames,
         );
       }
 
       animationFrameId =
-        window.requestAnimationFrame(animate);
+        window.requestAnimationFrame(
+          animate,
+        );
     };
 
     animationFrameId =
-      window.requestAnimationFrame(animate);
+      window.requestAnimationFrame(
+        animate,
+      );
 
     return () => {
       window.cancelAnimationFrame(
         animationFrameId,
       );
     };
-  }, [frames, paused, speed]);
+  }, [
+    frames,
+    paused,
+    speed,
+  ]);
 
   const displayHeight =
-    (frameHeight / frameWidth) *
+    (frameHeight /
+      frameWidth) *
     displayWidth;
+
+  const visibleFrame =
+    paused
+      ? 0
+      : frame;
 
   return (
     <div
       aria-hidden="true"
       style={{
         position: "relative",
+
         width: `${displayWidth}px`,
+
         height: `${displayHeight}px`,
+
         overflow: "hidden",
+
         flexShrink: 0,
       }}
     >
-      {/* Sprite sheets should remain unoptimized to preserve exact frames. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt=""
         draggable={false}
-        decoding="async"
+        decoding="sync"
+        loading="eager"
         style={{
-          position: "absolute",
+          position:
+            "absolute",
+
           left: 0,
           bottom: 0,
-          width: `${displayWidth * frames}px`,
+
+          width: `${
+            displayWidth *
+            frames
+          }px`,
+
           height: `${displayHeight}px`,
-          maxWidth: "none",
-          transform: `translate3d(-${frame * displayWidth}px, 0, 0)`,
-          willChange: "transform",
-          imageRendering: "pixelated",
-          pointerEvents: "none",
-          userSelect: "none",
+
+          maxWidth:
+            "none",
+
+          transform: `translate3d(-${
+            visibleFrame *
+            displayWidth
+          }px, 0, 0)`,
+
+          willChange:
+            "transform",
+
+          imageRendering:
+            "pixelated",
+
+          pointerEvents:
+            "none",
+
+          userSelect:
+            "none",
         }}
       />
     </div>
