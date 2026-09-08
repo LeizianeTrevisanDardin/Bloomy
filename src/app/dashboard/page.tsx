@@ -1,33 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+
 import ClockCard from "@/components/ClockCard";
 import BloomyWorld from "@/components/BloomyWorld";
 import HabitsPanel from "@/components/HabitCard";
 import WeatherCard from "@/components/WeatherCard";
-import { useLocalWeather } from "@/hooks/useLocalWeather";
-import { useProfile } from "@/hooks/useProfiles";
 import TasksPanel from "@/components/TasksPanel";
 import GoalsPanel from "@/components/GoalsPanel";
-import Link from "next/link";
-import {
-  usePathname,
-  useRouter,
-} from "next/navigation";
+
+import { useLocalWeather } from "@/hooks/useLocalWeather";
+import { useProfile } from "@/hooks/useProfiles";
 import { useTasks } from "@/hooks/useTasks";
 import { useGoals } from "@/hooks/useGoals";
+import { useStatistics } from "@/hooks/useStatistics";
+
 import { createClient } from "@/lib/supabase/client";
-import {
-  useStatistics,
-} from "@/hooks/useStatistics";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [supabase] = useState(
-    () => createClient(),
-  );
-  const [signingOut, setSigningOut] =
-    useState(false);
+
+  const [supabase] = useState(() => createClient());
+  const [signingOut, setSigningOut] = useState(false);
 
   const {
     weather,
@@ -42,32 +38,24 @@ export default function DashboardPage() {
     refreshProfile,
   } = useProfile();
 
-  const currentLevel =
-    profile?.level ?? 1;
-
-  const currentXP =
-    profile?.xp ?? 0;
-
-  const xpGoal =
-    currentLevel * 100;
-
-  const xpProgress =
-    Math.min(
-      100,
-      (currentXP / xpGoal) * 100,
-    );
-
-  const displayName =
-    profileLoading
-      ? "Loading..."
-      : profile?.display_name ||
-        "Bloomy User";
-
   const {
-  statistics,
-  loading: statisticsLoading,
-  error: statisticsError,
-} = useStatistics();
+    statistics,
+    loading: statisticsLoading,
+    error: statisticsError,
+  } = useStatistics();
+
+  const currentLevel = profile?.level ?? 1;
+  const currentXP = profile?.xp ?? 0;
+  const xpGoal = currentLevel * 100;
+
+  const xpProgress = Math.min(
+    100,
+    (currentXP / xpGoal) * 100,
+  );
+
+  const displayName = profileLoading
+    ? "Loading..."
+    : profile?.display_name || "Bloomy User";
 
   const handleSignOut = async () => {
     try {
@@ -84,6 +72,7 @@ export default function DashboardPage() {
       router.refresh();
     } catch {
       setSigningOut(false);
+
       window.alert(
         "Unable to sign out. Please try again.",
       );
@@ -94,12 +83,13 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-[#0c0c0f] text-white">
       <div className="flex min-h-screen">
         {/* SIDEBAR */}
-        
+
         <aside className="hidden w-[220px] shrink-0 border-r border-white/[0.06] bg-[#101014] lg:flex lg:flex-col xl:w-[240px] 2xl:w-[250px]">
           <div className="flex flex-1 flex-col p-5">
             {/* PROFILE */}
+
             <div className="flex items-center gap-3">
-             <div
+              <div
                 className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-purple-400/20 bg-purple-500/10 bg-cover bg-center text-2xl"
                 style={
                   profile?.avatar_url
@@ -126,6 +116,7 @@ export default function DashboardPage() {
             </div>
 
             {/* XP */}
+
             <div className="mt-7">
               <div className="mb-2 flex items-center justify-between text-xs">
                 <span className="text-zinc-400">
@@ -155,6 +146,7 @@ export default function DashboardPage() {
             </div>
 
             {/* NAVIGATION */}
+
             <nav className="mt-10 space-y-2 text-sm text-zinc-400">
               <SidebarButton
                 icon="🏠"
@@ -194,6 +186,12 @@ export default function DashboardPage() {
               />
 
               <SidebarButton
+                icon="🛍️"
+                label="Shop"
+                href="/dashboard/shop"
+              />
+
+              <SidebarButton
                 icon="⚙️"
                 label="Settings"
                 href="/dashboard/settings"
@@ -201,6 +199,7 @@ export default function DashboardPage() {
             </nav>
 
             {/* LOG OUT */}
+
             <div className="mt-4 border-t border-white/[0.06] pt-4">
               <button
                 type="button"
@@ -221,6 +220,7 @@ export default function DashboardPage() {
             </div>
 
             {/* REMINDER */}
+
             <div className="mt-auto rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-purple-500/[0.05] p-4">
               <span className="text-2xl">
                 🌱
@@ -242,10 +242,12 @@ export default function DashboardPage() {
         </aside>
 
         {/* MAIN */}
+
         <main className="min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[1800px] px-2 pb-24 pt-2 sm:px-3 sm:pt-3 md:px-4 lg:pb-5 xl:px-5 2xl:px-6">
             <div className="space-y-3">
               {/* MOBILE PROFILE */}
+
               <section className="flex items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#151419] p-3 lg:hidden">
                 <div
                   className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-purple-400/20 bg-purple-500/10 bg-cover bg-center text-xl"
@@ -290,104 +292,86 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </section>
-                {/* BLOOMY WORLD */}
-                <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
-                  <BloomyWorld automaticScene={automaticScene} />
 
-                  {/* CLOCK */}
-                  <ClockCard />
+              {/* BLOOMY WORLD */}
 
-                  {/* REAL WEATHER */}
-                  <WeatherCard
-                    weather={weather}
-                    loading={loading}
-                    error={error}
-                    automaticScene={automaticScene}
+              <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
+                <BloomyWorld
+                  automaticScene={automaticScene}
+                />
+
+                <ClockCard />
+
+                <WeatherCard
+                  weather={weather}
+                  loading={loading}
+                  error={error}
+                  automaticScene={automaticScene}
+                />
+
+                {/* COINS AND SHOP */}
+
+                <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
+                  <div className="flex min-w-0 gap-2">
+                    <WorldStat
+                      icon="🪙"
+                      label="Coins"
+                      value={String(profile?.coins ?? 0)}
+                    />
+                  </div>
+
+                  <Link
+                    href="/dashboard/shop"
+                    className="pointer-events-auto flex min-h-11 shrink-0 touch-manipulation items-center gap-2 rounded-xl border border-purple-400/20 bg-black/75 px-4 text-sm font-medium text-purple-100 shadow-lg backdrop-blur-md transition hover:bg-purple-950/90"
+                  >
+                    <span aria-hidden="true">
+                      🛍️
+                    </span>
+                    Shop
+                  </Link>
+                </div>
+              </section>
+
+              {/* HABITS / TASKS / GOALS */}
+
+              <section className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                <div className="h-full min-w-0">
+                  <HabitsPanel
+                    onRewardsUpdated={refreshProfile}
                   />
+                </div>
 
-                  {/* WORLD STATUS */}
-                  <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
-                    <div className="flex min-w-0 gap-2">
-                      {/* for future energy implmentation, we will keep this code here for now */}
-                      {/* <WorldStat
-                        icon="⚡"
-                        label="Energy"
-                        value={`${profile?.energy ?? 100}/100`}
-                        color="bg-amber-400"
-                        progress={`${profile?.energy ?? 100}%`}
-                      /> */}
-
-                      <WorldStat
-                        icon="🪙"
-                        label="Coins"
-                        value={String(
-                          profile?.coins ?? 0,
-                        )}
-                      />
-                      </div>
-
-{/* for later implementation of gems, we will keep this code here for now */}
-                      {/* <WorldStat
-                        icon="💎"
-                        label="Gems"
-                        value={String(
-                          profile?.gems ?? 0,
-                        )}
-                      />
-                    </div> */}
-
-                    {/* <button
-                      type="button"
-                      className="pointer-events-auto hidden h-[46px] shrink-0 items-center rounded-xl border border-white/8 bg-black/70 px-3 text-xs font-medium text-zinc-100 shadow-lg backdrop-blur-lx transition hover:bg-black/85 sm:flex"
-                    >
-                      🗺️ Explore the world
-                    </button> */}
-                  </div>
-                </section>
-
-                {/* HABITS / TASKS / GOALS */}
-                <section className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                  <div className="h-full min-w-0">
-                    <HabitsPanel
-                      onRewardsUpdated={
-                        refreshProfile
-                      }
-                    />
-                  </div>
-
-                  <div className="h-full min-w-0">
-                    <TasksPanel
-                      onRewardsUpdated={
-                        refreshProfile
-                      }
-                    />
-                  </div>
-
-                  <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
-                    <GoalsPanel
-                      onRewardsUpdated={
-                        refreshProfile
-                      }
-                    />
-                  </div>
-                </section>
-
-                {/* CALENDAR / STATISTICS */}
-                <section className="grid grid-cols-1 gap-3 2xl:grid-cols-[0.8fr_2fr]">
-                  <CalendarPanel />
-
-                  <StatisticsPanel
-                    statistics={statistics}
-                    loading={statisticsLoading}
-                    error={statisticsError}
+                <div className="h-full min-w-0">
+                  <TasksPanel
+                    onRewardsUpdated={refreshProfile}
                   />
-                </section>
-              </div>
+                </div>
+
+                <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
+                  <GoalsPanel
+                    onRewardsUpdated={refreshProfile}
+                  />
+                </div>
+              </section>
+
+              {/* CALENDAR / STATISTICS */}
+
+              <section className="grid grid-cols-1 gap-3 2xl:grid-cols-[0.8fr_2fr]">
+                <CalendarPanel />
+
+                <StatisticsPanel
+                  statistics={statistics}
+                  loading={statisticsLoading}
+                  error={statisticsError}
+                />
+              </section>
             </div>
+          </div>
         </main>
       </div>
 
       {/* MOBILE NAVIGATION */}
+
       <nav
         aria-label="Mobile navigation"
         className="fixed inset-x-0 bottom-0 z-[100] grid grid-cols-5 border-t border-white/10 bg-[#101014]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl lg:hidden"
@@ -452,7 +436,10 @@ function MobileNavButton({
           : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
       }`}
     >
-      <span aria-hidden="true" className="text-base">
+      <span
+        aria-hidden="true"
+        className="text-base"
+      >
         {icon}
       </span>
 
@@ -493,87 +480,79 @@ function SidebarButton({
 }
 
 function WorldStat({
-    icon,
-    label,
-    value,
-    color,
-    progress,
-  }: {
-    icon: string;
-    label: string;
-    value: string;
-    color?: string;
-    progress?: string;
-  }) {
-    return (
-      <div className="flex h-[40px] min-w-[80px] items-center gap-2 rounded-xl border border-white/10 bg-black/70 px-3 shadow-lg backdrop-blur-lx md:min-w-[125px]">
-        <span className="shrink-0 text-base">
-          {icon}
-        </span>
+  icon,
+  label,
+  value,
+  color,
+  progress,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  color?: string;
+  progress?: string;
+}) {
+  return (
+    <div className="flex h-[40px] min-w-[80px] items-center gap-2 rounded-xl border border-white/10 bg-black/70 px-3 shadow-lg backdrop-blur-lx md:min-w-[125px]">
+      <span className="shrink-0 text-base">
+        {icon}
+      </span>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="hidden text-[11px] text-zinc-400 md:inline">
-              {label}
-            </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <span className="hidden text-[11px] text-zinc-400 md:inline">
+            {label}
+          </span>
 
-            <span className="text-xs font-semibold text-white">
-              {value}
-            </span>
-          </div>
-
-          {progress && color && (
-            <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
-              <div
-                className={`h-full rounded-full ${color}`}
-                style={{ width: progress }}
-              />
-            </div>
-          )}
+          <span className="text-xs font-semibold text-white">
+            {value}
+          </span>
         </div>
-      </div>
-    );
-  }
 
+        {progress && color && (
+          <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
+            <div
+              className={`h-full rounded-full ${color}`}
+              style={{ width: progress }}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function CalendarPanel() {
   const { tasks } = useTasks();
   const { goals } = useGoals();
 
-  const [visibleMonth, setVisibleMonth] = useState(
-    () => {
-      const today = new Date();
-      return new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        1,
-      );
-    },
-  );
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const today = new Date();
+
+    return new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1,
+    );
+  });
 
   const [selectedDate, setSelectedDate] = useState(
     () => getDateKey(new Date()),
   );
 
   const weekDays = [
-    "M",
-    "T",
-    "W",
-    "T",
-    "F",
-    "S",
-    "S",
+    "M", "T", "W", "T", "F", "S", "S",
   ];
 
   const year = visibleMonth.getFullYear();
   const month = visibleMonth.getMonth();
+
   const daysInMonth = new Date(
     year,
     month + 1,
     0,
   ).getDate();
 
-  // Converts Sunday-first JavaScript days to Monday-first.
   const leadingEmptyDays =
     (new Date(year, month, 1).getDay() + 6) % 7;
 
@@ -593,13 +572,17 @@ function CalendarPanel() {
   const taskDates = new Set(
     tasks
       .map((task) => task.due_date)
-      .filter((date): date is string => Boolean(date)),
+      .filter(
+        (date): date is string => Boolean(date),
+      ),
   );
 
   const goalDates = new Set(
     goals
       .map((goal) => goal.deadline)
-      .filter((date): date is string => Boolean(date)),
+      .filter(
+        (date): date is string => Boolean(date),
+      ),
   );
 
   const changeMonth = (offset: number) => {
@@ -671,6 +654,7 @@ function CalendarPanel() {
             month,
             dayNumber,
           );
+
           const dateKey = getDateKey(date);
           const isToday = dateKey === todayKey;
           const isSelected = dateKey === selectedDate;
@@ -705,6 +689,7 @@ function CalendarPanel() {
                       : "bg-transparent"
                   }`}
                 />
+
                 <span
                   className={`h-1 w-1 rounded-full ${
                     hasGoal
@@ -724,6 +709,7 @@ function CalendarPanel() {
             <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
             Task
           </span>
+
           <span className="flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Goal
@@ -743,11 +729,14 @@ function CalendarPanel() {
 
 function getDateKey(date: Date) {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(
-    2,
-    "0",
-  );
-  const day = String(date.getDate()).padStart(2, "0");
+
+  const month = String(
+    date.getMonth() + 1,
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate(),
+  ).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
 }
