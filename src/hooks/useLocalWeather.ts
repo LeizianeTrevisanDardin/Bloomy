@@ -28,6 +28,78 @@ type OpenMeteoResponse = {
   };
 };
 
+// Response returned by our server route; the API key stays on the server.
+type WeatherApiResponse = {
+  source: string;
+  city: string;
+  region: string;
+  country: string;
+  localTime: string;
+  updatedAt: string;
+  temperature: number;
+  feelsLike: number;
+  description: string;
+  conditionCode: number;
+  precipitationMm: number;
+  cloudCover: number;
+  isDay: boolean;
+};
+
+// Keep the existing WMO-style weatherCode used by the dashboard.
+// These are visual categories, not an exact equivalence between providers.
+function normalizeWeatherApi(result: WeatherApiResponse): OpenMeteoResponse {
+  const code = result.conditionCode;
+  let weatherCode = 3;
+
+  if (code === 1000) weatherCode = 0;
+  else if (code === 1003) weatherCode = 2;
+  else if ([1030, 1135, 1147].includes(code)) weatherCode = 45;
+  else if ([
+    1066, 1069, 1114, 1117, 1204, 1207,
+    1210, 1213, 1216, 1219, 1222, 1225, 1237,
+    1249, 1252, 1255, 1258, 1261, 1264, 1279, 1282,
+  ].includes(code)) weatherCode = 71;
+  else if ([1087, 1273, 1276].includes(code)) weatherCode = 95;
+  else if ([1072, 1150, 1153, 1168, 1171].includes(code)) weatherCode = 51;
+  else if ([
+    1063, 1180, 1183, 1186, 1189, 1192, 1195,
+    1198, 1201, 1240, 1243, 1246,
+  ].includes(code)) weatherCode = 61;
+
+  return {
+    current: {
+      time: result.localTime.replace(" ", "T"),
+      temperature_2m: result.temperature,
+      apparent_temperature: result.feelsLike,
+      is_day: result.isDay ? 1 : 0,
+      precipitation: result.precipitationMm,
+      // This route reports total precipitation only, not separate amounts.
+      rain: 0,
+      showers: 0,
+      snowfall: 0,
+      weather_code: weatherCode,
+      cloud_cover: result.cloudCover,
+    },
+    daily: { sunrise: [], sunset: [] },
+  };
+}
+
+function isValidWeatherApi(
+  result: WeatherApiResponse | null,
+): result is WeatherApiResponse {
+  return Boolean(
+    result &&
+    typeof result.localTime === "string" &&
+    typeof result.description === "string" &&
+    typeof result.isDay === "boolean" &&
+    Number.isFinite(result.temperature) &&
+    Number.isFinite(result.feelsLike) &&
+    Number.isFinite(result.conditionCode) &&
+    Number.isFinite(result.precipitationMm) &&
+    Number.isFinite(result.cloudCover),
+  );
+}
+
 type LocationResponse = {
   city?: string;
   locality?: string;
@@ -68,7 +140,7 @@ const CALGARY_LOCATION = {
   countryCode: "CA",
 };
 
-const WEATHER_CACHE_KEY = "bloomy-weather-v2";
+const WEATHER_CACHE_KEY = "bloomy-weather-v4-weatherapi";
 const LOCATION_CACHE_KEY = "bloomy-location-v1";
 const WEATHER_CACHE_TIME = 5 * 60 * 1000;
 const LOCATION_CACHE_TIME = 5 * 60 * 1000;
@@ -95,7 +167,7 @@ function readWeatherCache(): WeatherSnapshot | null {
 
   if (
     !cached ||
-    !cached.snapshot.weather ||
+    !cached.snapshot?.weather ||
     Date.now() - cached.savedAt > WEATHER_CACHE_TIME
   ) {
     return null;
@@ -169,6 +241,30 @@ async function readJsonSafely<T>(
   }
 }
 
+async function fetchJson<T>(
+  url: string,
+  parentSignal: AbortSignal,
+): Promise<T | null> {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  parentSignal.addEventListener("abort", abort, { once: true });
+  if (parentSignal.aborted) controller.abort();
+  const timeout = window.setTimeout(abort, 12_000);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    return await readJsonSafely<T>(response);
+  } catch {
+    return null;
+  } finally {
+    window.clearTimeout(timeout);
+    parentSignal.removeEventListener("abort", abort);
+  }
+}
+
 function minutesFromDateString(value?: string) {
   const time = value?.split("T")[1];
   if (!time) return 0;
@@ -228,12 +324,24 @@ function getAutomaticScene({
   sunset?: string;
   auroraProbability: number;
 }): Scene {
-  const snowCodes = [71, 73, 75, 77, 85, 86];
-  const rainCodes = [
-    51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99,
+  const snowCodes = [
+    71, 73, 75, 77, 85, 86,
   ];
 
-  if (snowfall > 0 || snowCodes.includes(weatherCode)) return "snowy";
+  const rainCodes = [
+    51, 53, 55, 56, 57,
+    61, 63, 65, 66, 67,
+    80, 81, 82,
+    95, 96, 99,
+  ];
+
+  // Snow and rain take priority at any time of day.
+  if (
+    snowfall > 0 ||
+    snowCodes.includes(weatherCode)
+  ) {
+    return "snowy";
+  }
 
   if (
     precipitation > 0 ||
@@ -244,15 +352,34 @@ function getAutomaticScene({
     return "rainy";
   }
 
-  if (!isDay && auroraProbability >= 10 && cloudCover <= 65) {
+  if (
+    !isDay &&
+    auroraProbability >= 10 &&
+    cloudCover <= 65
+  ) {
     return "aurora";
   }
 
-  if (!isDay) return "night";
+  if (!isDay) {
+    return "night";
+  }
 
-  const currentMinutes = minutesFromDateString(currentTime);
-  const sunriseMinutes = minutesFromDateString(sunrise);
-  const sunsetMinutes = minutesFromDateString(sunset);
+  // Cloudy weather takes priority over sunrise and sunset.
+  if (
+    [2, 3, 45, 48].includes(weatherCode) ||
+    cloudCover >= 40
+  ) {
+    return "cloudy";
+  }
+
+  const currentMinutes =
+    minutesFromDateString(currentTime);
+
+  const sunriseMinutes =
+    minutesFromDateString(sunrise);
+
+  const sunsetMinutes =
+    minutesFromDateString(sunset);
 
   if (
     sunriseMinutes > 0 &&
@@ -264,13 +391,10 @@ function getAutomaticScene({
 
   if (
     sunsetMinutes > 0 &&
-    currentMinutes >= sunsetMinutes - 75
+    currentMinutes >= sunsetMinutes - 75 &&
+    currentMinutes <= sunsetMinutes + 45
   ) {
     return "sunset";
-  }
-
-  if ([2, 3, 45, 48].includes(weatherCode) || cloudCover >= 40) {
-    return "cloudy";
   }
 
   return "sunny";
@@ -319,6 +443,7 @@ function createWeatherData(
   city: string,
   countryCode: string,
   auroraProbability: number,
+  providerDescription?: string,
 ) {
   const current = result.current;
   const isDay = current.is_day === 1;
@@ -332,8 +457,8 @@ function createWeatherData(
     snowfall: current.snowfall,
     cloudCover: current.cloud_cover,
     currentTime: current.time,
-    sunrise: result.daily.sunrise[0],
-    sunset: result.daily.sunset[0],
+    sunrise: result.daily?.sunrise?.[0],
+    sunset: result.daily?.sunset?.[0],
     auroraProbability,
   });
 
@@ -351,7 +476,7 @@ function createWeatherData(
     cloudCover: current.cloud_cover,
     city,
     countryCode,
-    description: scene === "aurora" ? "Aurora tonight" : details.description,
+    description: providerDescription || (scene === "aurora" ? "Aurora tonight" : details.description),
     icon: scene === "aurora" ? "🌌" : details.icon,
     auroraProbability,
   };
@@ -411,36 +536,44 @@ export function useLocalWeather() {
 
       if (requestId !== requestIdRef.current) return;
 
-      const weatherRequest = fetch(
-        createWeatherUrl(location.latitude, location.longitude),
-        { signal: controller.signal },
-      );
+      const { latitude, longitude } = location;
+      const query = `latitude=${latitude}&longitude=${longitude}`;
 
-      const locationRequest: Promise<Response | null> = location.usedFallback
+      // Open-Meteo supplies astronomy and serves as a weather fallback.
+      const openMeteoRequest = fetchJson<OpenMeteoResponse>(
+        createWeatherUrl(latitude, longitude),
+        controller.signal,
+      );
+      const primaryRequest = fetchJson<WeatherApiResponse>(
+        `/api/weather?${query}`,
+        controller.signal,
+      );
+      const locationRequest = location.usedFallback
         ? Promise.resolve(null)
-        : fetch(
-            createLocationUrl(location.latitude, location.longitude),
-            { signal: controller.signal },
-          ).catch(() => null);
-
-      const auroraRequest: Promise<Response | null> = fetch(
-        `/api/aurora?latitude=${location.latitude}&longitude=${location.longitude}`,
-        { signal: controller.signal },
-      ).catch(() => null);
-
-      // Only the essential weather request blocks the first result.
-      const weatherResult = await readJsonSafely<OpenMeteoResponse>(
-        await weatherRequest,
+        : fetchJson<LocationResponse>(
+            createLocationUrl(latitude, longitude),
+            controller.signal,
+          );
+      const auroraRequest = fetchJson<AuroraResponse>(
+        `/api/aurora?${query}`,
+        controller.signal,
       );
 
-      if (!weatherResult) throw new Error("Unable to read weather.");
+      const primaryResult = await primaryRequest;
+      const primary = isValidWeatherApi(primaryResult) ? primaryResult : null;
+      const weatherResult = primary
+        ? normalizeWeatherApi(primary)
+        : await openMeteoRequest;
+
+      if (!weatherResult?.current) throw new Error("Unable to read weather.");
       if (requestId !== requestIdRef.current) return;
 
       const firstSnapshot = createWeatherData(
         weatherResult,
-        location.usedFallback ? CALGARY_LOCATION.city : "Your location",
+        primary?.city || (location.usedFallback ? CALGARY_LOCATION.city : "Your location"),
         location.usedFallback ? CALGARY_LOCATION.countryCode : "",
         0,
+        primary?.description,
       );
 
       await preloadScene(firstSnapshot.automaticScene);
@@ -450,18 +583,16 @@ export function useLocalWeather() {
       commitSnapshot(firstSnapshot);
       setLoading(false);
 
-      // City and aurora improve the result without blocking the dashboard.
+      // Enrich the primary result without replacing its current weather.
       void Promise.all([
-        locationRequest.then((response) =>
-          readJsonSafely<LocationResponse>(response),
-        ),
-        auroraRequest.then((response) =>
-          readJsonSafely<AuroraResponse>(response),
-        ),
-      ]).then(async ([locationResult, auroraResult]) => {
+        locationRequest,
+        auroraRequest,
+        openMeteoRequest,
+      ]).then(async ([locationResult, auroraResult, astronomyResult]) => {
         if (requestId !== requestIdRef.current) return;
 
         const city =
+          primary?.city ||
           locationResult?.city ||
           locationResult?.locality ||
           locationResult?.principalSubdivision ||
@@ -474,10 +605,14 @@ export function useLocalWeather() {
           "";
 
         const improvedSnapshot = createWeatherData(
-          weatherResult,
+          {
+            ...weatherResult,
+            daily: astronomyResult?.daily ?? weatherResult.daily,
+          },
           city,
           countryCode,
           auroraResult?.probability ?? 0,
+          primary?.description,
         );
 
         if (
@@ -490,6 +625,8 @@ export function useLocalWeather() {
         if (requestId === requestIdRef.current) {
           commitSnapshot(improvedSnapshot);
         }
+      }).catch(() => {
+        // Keep the first usable result if optional enrichment fails.
       });
     } catch (loadError) {
       if (
@@ -522,6 +659,7 @@ export function useLocalWeather() {
     return () => {
       window.clearTimeout(startTimeout);
       window.clearInterval(interval);
+      requestIdRef.current += 1;
       controllerRef.current?.abort();
     };
   }, [loadWeather]);
@@ -534,3 +672,4 @@ export function useLocalWeather() {
     refreshWeather: () => loadWeather(false),
   };
 }
+
