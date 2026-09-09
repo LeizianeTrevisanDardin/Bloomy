@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -38,101 +39,105 @@ const scenes: Scene[] = [
   "aurora",
 ];
 
-const rainSplashes: RainSplash[] =
-  [
-    {
-      left: "6%",
-      top: "70%",
-      delay: "0s",
-      duration: "1.3s",
-      size: "medium",
-    },
-    {
-      left: "14%",
-      top: "82%",
-      delay: "0.4s",
-      duration: "1.5s",
-      size: "large",
-    },
-    {
-      left: "22%",
-      top: "66%",
-      delay: "0.8s",
-      duration: "1.2s",
-      size: "small",
-    },
-    {
-      left: "30%",
-      top: "88%",
-      delay: "0.2s",
-      duration: "1.6s",
-      size: "medium",
-    },
-    {
-      left: "38%",
-      top: "74%",
-      delay: "1s",
-      duration: "1.4s",
-      size: "large",
-    },
-    {
-      left: "47%",
-      top: "84%",
-      delay: "0.6s",
-      duration: "1.3s",
-      size: "small",
-    },
-    {
-      left: "56%",
-      top: "68%",
-      delay: "1.2s",
-      duration: "1.5s",
-      size: "medium",
-    },
-    {
-      left: "64%",
-      top: "90%",
-      delay: "0.3s",
-      duration: "1.2s",
-      size: "large",
-    },
-    {
-      left: "72%",
-      top: "76%",
-      delay: "0.9s",
-      duration: "1.6s",
-      size: "medium",
-    },
-    {
-      left: "80%",
-      top: "86%",
-      delay: "0.5s",
-      duration: "1.3s",
-      size: "small",
-    },
-    {
-      left: "88%",
-      top: "72%",
-      delay: "1.1s",
-      duration: "1.4s",
-      size: "large",
-    },
-    {
-      left: "95%",
-      top: "91%",
-      delay: "0.7s",
-      duration: "1.5s",
-      size: "medium",
-    },
-  ];
+const rainSplashes: RainSplash[] = [
+  {
+    left: "6%",
+    top: "70%",
+    delay: "0s",
+    duration: "1.3s",
+    size: "medium",
+  },
+  {
+    left: "14%",
+    top: "82%",
+    delay: "0.4s",
+    duration: "1.5s",
+    size: "large",
+  },
+  {
+    left: "22%",
+    top: "66%",
+    delay: "0.8s",
+    duration: "1.2s",
+    size: "small",
+  },
+  {
+    left: "30%",
+    top: "88%",
+    delay: "0.2s",
+    duration: "1.6s",
+    size: "medium",
+  },
+  {
+    left: "38%",
+    top: "74%",
+    delay: "1s",
+    duration: "1.4s",
+    size: "large",
+  },
+  {
+    left: "47%",
+    top: "84%",
+    delay: "0.6s",
+    duration: "1.3s",
+    size: "small",
+  },
+  {
+    left: "56%",
+    top: "68%",
+    delay: "1.2s",
+    duration: "1.5s",
+    size: "medium",
+  },
+  {
+    left: "64%",
+    top: "90%",
+    delay: "0.3s",
+    duration: "1.2s",
+    size: "large",
+  },
+  {
+    left: "72%",
+    top: "76%",
+    delay: "0.9s",
+    duration: "1.6s",
+    size: "medium",
+  },
+  {
+    left: "80%",
+    top: "86%",
+    delay: "0.5s",
+    duration: "1.3s",
+    size: "small",
+  },
+  {
+    left: "88%",
+    top: "72%",
+    delay: "1.1s",
+    duration: "1.4s",
+    size: "large",
+  },
+  {
+    left: "95%",
+    top: "91%",
+    delay: "0.7s",
+    duration: "1.5s",
+    size: "medium",
+  },
+];
 
 export default function BloomyWorld({
   automaticScene,
 }: BloomyWorldProps) {
+  // =================================
+  // MANUAL SCENE
+  // =================================
+
   /*
    * When manualScene is null,
    * Bloomy follows the real weather.
    */
+
   const [
     manualScene,
     setManualScene,
@@ -140,15 +145,184 @@ export default function BloomyWorld({
     null,
   );
 
-  const scene =
+  // =================================
+  // REQUESTED SCENE
+  // =================================
+
+  /*
+   * This is the scene Bloomy wants
+   * to display.
+   *
+   * It may come from:
+   * - Auto weather
+   * - Manual selector
+   */
+
+  const requestedScene =
     manualScene ??
     automaticScene;
 
+  // =================================
+  // DISPLAYED SCENE
+  // =================================
+
+  /*
+   * IMPORTANT:
+   *
+   * requestedScene can change
+   * immediately.
+   *
+   * displayedScene changes only
+   * after the new background image
+   * has finished loading.
+   *
+   * This prevents:
+   *
+   * black screen
+   * +
+   * snow/rain effects appearing
+   * before the background.
+   */
+
+  const [
+    displayedScene,
+    setDisplayedScene,
+  ] = useState<Scene>(
+    requestedScene,
+  );
+
+  // =================================
+  // PRELOAD ALL SCENES
+  // =================================
+
+  useEffect(() => {
+    const images:
+      HTMLImageElement[] = [];
+
+    scenes.forEach(
+      (sceneName) => {
+        const image =
+          new Image();
+
+        image.src =
+          `/bloomy/${sceneName}.webp`;
+
+        images.push(
+          image,
+        );
+      },
+    );
+
+    return () => {
+      images.forEach(
+        (image) => {
+          image.onload =
+            null;
+
+          image.onerror =
+            null;
+        },
+      );
+    };
+  }, []);
+
+  // =================================
+  // SAFE SCENE CHANGE
+  // =================================
+
+  useEffect(() => {
+    if (
+      requestedScene ===
+      displayedScene
+    ) {
+      return;
+    }
+
+    let cancelled =
+      false;
+
+    const image =
+      new Image();
+
+    const switchScene =
+      () => {
+        if (
+          cancelled
+        ) {
+          return;
+        }
+
+        setDisplayedScene(
+          requestedScene,
+        );
+      };
+
+    image.onload =
+      switchScene;
+
+    image.onerror =
+      switchScene;
+
+    image.src =
+      `/bloomy/${requestedScene}.webp`;
+
+    /*
+     * The browser may already have
+     * this scene cached.
+     */
+
+    if (
+      image.complete &&
+      image.naturalWidth > 0
+    ) {
+      switchScene();
+    }
+
+    return () => {
+      cancelled =
+        true;
+
+      image.onload =
+        null;
+
+      image.onerror =
+        null;
+    };
+  }, [
+    requestedScene,
+    displayedScene,
+  ]);
+
+  // =================================
+  // ACTUAL SCENE
+  // =================================
+
+  /*
+   * Everything uses displayedScene.
+   *
+   * This means:
+   * background,
+   * rain,
+   * snow,
+   * aurora
+   *
+   * all change together.
+   */
+
+  const scene =
+    displayedScene;
+
+  // =================================
+  // SCENE SELECTOR
+  // =================================
+
   /*
    * Keep true while testing.
-   * Change to false to hide the buttons.
+   * Change to false to hide buttons.
    */
-  const showSceneSelector = true;
+
+  const showSceneSelector =
+    true;
 
   return (
     <div className="w-full bg-[#151419]">
@@ -166,11 +340,11 @@ export default function BloomyWorld({
 
           <button
             type="button"
-            onClick={() =>
+            onClick={() => {
               setManualScene(
                 null,
-              )
-            }
+              );
+            }}
             className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs transition ${
               manualScene ===
               null
@@ -188,11 +362,11 @@ export default function BloomyWorld({
               <button
                 key={item}
                 type="button"
-                onClick={() =>
+                onClick={() => {
                   setManualScene(
                     item,
-                  )
-                }
+                  );
+                }}
                 className={`shrink-0 rounded-xl border px-3 py-1.5 text-xs capitalize transition ${
                   manualScene ===
                   item
@@ -226,13 +400,27 @@ export default function BloomyWorld({
           {/* BACKGROUND */}
           {/* ================================= */}
 
+          {/*
+           * IMPORTANT:
+           *
+           * Do NOT put:
+           *
+           * key={scene}
+           *
+           * here.
+           *
+           * Keeping the same img element
+           * prevents React from destroying
+           * the old image during a scene
+           * change.
+           */}
+
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            key={scene}
             src={`/bloomy/${scene}.webp`}
             alt={`${scene} Bloomy world`}
             fetchPriority="high"
-            decoding="async"
+            decoding="sync"
             className="absolute inset-0 h-full w-full object-fill"
           />
 
@@ -354,6 +542,7 @@ export default function BloomyWorld({
               {/* FALLING RAIN */}
 
               <div className="rain-layer rain-layer-back" />
+
               <div className="rain-layer rain-layer-front" />
 
               {/* GROUND SPLASHES */}
