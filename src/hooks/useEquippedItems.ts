@@ -1,5 +1,3 @@
-// src/hooks/useEquippedItems.ts
-
 "use client";
 
 import {
@@ -17,6 +15,7 @@ export type EquippedShopItem = {
   name: string;
   slot: string;
   preview_url: string | null;
+
   asset_manifest: Record<
     string,
     unknown
@@ -31,9 +30,11 @@ type EquippedRow = {
         id: string;
         name: string;
         slot: string;
+
         preview_url:
           | string
           | null;
+
         asset_manifest:
           | Record<
               string,
@@ -45,9 +46,11 @@ type EquippedRow = {
         id: string;
         name: string;
         slot: string;
+
         preview_url:
           | string
           | null;
+
         asset_manifest:
           | Record<
               string,
@@ -57,6 +60,10 @@ type EquippedRow = {
       }[]
     | null;
 };
+
+// =================================
+// NORMALIZE EQUIPPED ROWS
+// =================================
 
 function normalizeEquippedRows(
   rows: EquippedRow[],
@@ -80,8 +87,11 @@ function normalizeEquippedRows(
 
       return [
         {
-          id: shopItem.id,
-          name: shopItem.name,
+          id:
+            shopItem.id,
+
+          name:
+            shopItem.name,
 
           slot:
             row.slot ??
@@ -98,10 +108,39 @@ function normalizeEquippedRows(
   );
 }
 
-export function useEquippedItems() {
-  const [supabase] = useState(
-    () => createClient(),
+// =================================
+// AUTH ERROR CHECK
+// =================================
+
+function isMissingSessionError(
+  error: unknown,
+) {
+  if (
+    !(error instanceof Error)
+  ) {
+    return false;
+  }
+
+  return (
+    error.name ===
+      "AuthSessionMissingError" ||
+    error.message
+      .toLowerCase()
+      .includes(
+        "auth session missing",
+      )
   );
+}
+
+// =================================
+// HOOK
+// =================================
+
+export function useEquippedItems() {
+  const [supabase] =
+    useState(
+      () => createClient(),
+    );
 
   const [
     equippedItems,
@@ -122,50 +161,84 @@ export function useEquippedItems() {
     string | null
   >(null);
 
+  // =================================
+  // FETCH EQUIPPED ITEMS
+  // =================================
+
   const fetchEquippedItems =
     useCallback(async () => {
-      const {
-        data: userData,
-        error: userError,
-      } =
-        await supabase.auth.getUser();
+      /*
+       * Check the local Supabase
+       * session first.
+       *
+       * This avoids calling getUser()
+       * while Supabase is still
+       * restoring auth on page load.
+       */
 
-      if (userError) {
-        throw userError;
+      const {
+        data:
+          sessionData,
+        error:
+          sessionError,
+      } =
+        await supabase.auth.getSession();
+
+      if (sessionError) {
+        if (
+          isMissingSessionError(
+            sessionError,
+          )
+        ) {
+          return [];
+        }
+
+        throw sessionError;
       }
 
-      const user =
-        userData.user;
+      const session =
+        sessionData.session;
 
-      if (!user) {
+      if (!session?.user) {
         return [];
       }
 
+      const user =
+        session.user;
+
+      // =================================
+      // LOAD EQUIPPED ITEMS
+      // =================================
+
       const {
         data,
-        error: equippedError,
-      } = await supabase
-        .from(
-          "user_equipped_items",
-        )
-        .select(
-          `
-            slot,
-            shop_items (
-              id,
-              name,
+        error:
+          equippedError,
+      } =
+        await supabase
+          .from(
+            "user_equipped_items",
+          )
+          .select(
+            `
               slot,
-              preview_url,
-              asset_manifest
-            )
-          `,
-        )
-        .eq(
-          "user_id",
-          user.id,
-        );
+              shop_items (
+                id,
+                name,
+                slot,
+                preview_url,
+                asset_manifest
+              )
+            `,
+          )
+          .eq(
+            "user_id",
+            user.id,
+          );
 
-      if (equippedError) {
+      if (
+        equippedError
+      ) {
         throw equippedError;
       }
 
@@ -173,17 +246,26 @@ export function useEquippedItems() {
         (data ??
           []) as EquippedRow[],
       );
-    }, [supabase]);
+    }, [
+      supabase,
+    ]);
+
+  // =================================
+  // INITIAL LOAD
+  // =================================
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled =
+      false;
 
     async function load() {
       try {
         const items =
           await fetchEquippedItems();
 
-        if (cancelled) {
+        if (
+          cancelled
+        ) {
           return;
         }
 
@@ -193,7 +275,29 @@ export function useEquippedItems() {
 
         setError(null);
       } catch (err) {
-        if (cancelled) {
+        if (
+          cancelled
+        ) {
+          return;
+        }
+
+        /*
+         * Missing auth during the
+         * initial render is not a
+         * real application error.
+         */
+
+        if (
+          isMissingSessionError(
+            err,
+          )
+        ) {
+          setEquippedItems(
+            [],
+          );
+
+          setError(null);
+
           return;
         }
 
@@ -208,23 +312,135 @@ export function useEquippedItems() {
             : "Could not load equipped items.",
         );
       } finally {
-        if (!cancelled) {
-          setLoading(false);
+        if (
+          !cancelled
+        ) {
+          setLoading(
+            false,
+          );
         }
       }
     }
 
     void load();
 
+    // =================================
+    // AUTH STATE LISTENER
+    // =================================
+
+    /*
+     * If the page mounted before
+     * Supabase finished restoring
+     * the user session, this listener
+     * reloads the equipped items as
+     * soon as the session becomes
+     * available.
+     */
+
+    const {
+      data:
+        authListener,
+    } =
+      supabase.auth.onAuthStateChange(
+        (
+          event,
+          session,
+        ) => {
+          if (
+            cancelled
+          ) {
+            return;
+          }
+
+          if (
+            event ===
+              "SIGNED_OUT" ||
+            !session?.user
+          ) {
+            setEquippedItems(
+              [],
+            );
+
+            setError(null);
+
+            return;
+          }
+
+          /*
+           * Do the async reload
+           * outside the auth callback.
+           */
+
+          window.setTimeout(
+            () => {
+              if (
+                cancelled
+              ) {
+                return;
+              }
+
+              void (async () => {
+                try {
+                  const items =
+                    await fetchEquippedItems();
+
+                  if (
+                    cancelled
+                  ) {
+                    return;
+                  }
+
+                  setEquippedItems(
+                    items,
+                  );
+
+                  setError(
+                    null,
+                  );
+                } catch (err) {
+                  if (
+                    cancelled ||
+                    isMissingSessionError(
+                      err,
+                    )
+                  ) {
+                    return;
+                  }
+
+                  console.error(
+                    "Failed to reload equipped items after auth change:",
+                    err,
+                  );
+                }
+              })();
+            },
+            0,
+          );
+        },
+      );
+
     return () => {
-      cancelled = true;
+      cancelled =
+        true;
+
+      authListener
+        .subscription
+        .unsubscribe();
     };
-  }, [fetchEquippedItems]);
+  }, [
+    fetchEquippedItems,
+    supabase,
+  ]);
+
+  // =================================
+  // REFRESH EQUIPPED ITEMS
+  // =================================
 
   const refreshEquippedItems =
     useCallback(async () => {
       try {
         setLoading(true);
+
         setError(null);
 
         const items =
@@ -234,6 +450,20 @@ export function useEquippedItems() {
           items,
         );
       } catch (err) {
+        if (
+          isMissingSessionError(
+            err,
+          )
+        ) {
+          setEquippedItems(
+            [],
+          );
+
+          setError(null);
+
+          return;
+        }
+
         console.error(
           "Failed to refresh equipped items:",
           err,
@@ -245,22 +475,42 @@ export function useEquippedItems() {
             : "Could not refresh equipped items.",
         );
       } finally {
-        setLoading(false);
+        setLoading(
+          false,
+        );
       }
-    }, [fetchEquippedItems]);
+    }, [
+      fetchEquippedItems,
+    ]);
+
+  // =================================
+  // GET ITEM BY SLOT
+  // =================================
 
   const getEquippedItem =
     useCallback(
-      (slot: string) =>
+      (
+        slot:
+          string,
+      ) =>
         equippedItems.find(
           (item) =>
-            item.slot === slot,
-        ) ?? null,
-      [equippedItems],
+            item.slot ===
+            slot,
+        ) ??
+        null,
+      [
+        equippedItems,
+      ],
     );
+
+  // =================================
+  // RESULT
+  // =================================
 
   return {
     equippedItems,
+
     loading,
     error,
 
