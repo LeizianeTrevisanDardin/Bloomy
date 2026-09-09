@@ -81,13 +81,13 @@ export default function WeatherCard({
             {weather.description}
           </p>
 
-          <p className="hidden truncate text-xs text-zinc-400 sm:block">
+          {/* <p className="hidden truncate text-xs text-zinc-400 sm:block">
             {weather.city}
 
             {weather.countryCode
               ? `, ${weather.countryCode}`
               : ""}
-          </p>
+          </p> */}
         </div>
       </div>
 
