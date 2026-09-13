@@ -68,7 +68,7 @@ body {
     The SVG filter bends different areas of
     the aurora instead of moving it as one block.
   */
-  filter: url("#aurora-wave-filter");
+  filter: none;
 
   animation: auroraSkyMotion 12s ease-in-out infinite;
 
