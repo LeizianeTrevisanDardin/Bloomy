@@ -552,3 +552,10 @@ body {
     animation: none;
   }
 }
+
+/* for desktop effect */
+@media (min-width: 1024px) {
+  .aurora-sky-motion {
+    filter: url("#aurora-wave-filter");
+  }
+}
