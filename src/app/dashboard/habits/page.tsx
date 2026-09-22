@@ -664,50 +664,35 @@ export default function HabitsPage() {
                               "No description added."}
                           </p>
 
-                          <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
-                            <span className="rounded-lg bg-white/5 px-2 py-1 capitalize">
-                              {
-                                habit.frequency
-                              }
+                          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                            <span className="inline-flex h-8 min-w-[88px] items-center justify-center rounded-lg bg-white/5 px-3 capitalize">
+                              {habit.frequency}
                             </span>
 
-                            <span className="rounded-lg bg-white/5 px-2 py-1">
-                              {
-                                habit.target_per_week
-                              }
-                              × weekly
+                            <span className="inline-flex h-8 min-w-[88px] items-center justify-center rounded-lg bg-white/5 px-3">
+                              {habit.target_per_week}× weekly
                             </span>
 
-                            <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                            <span className="inline-flex h-8 items-center gap-2 rounded-lg bg-white/5 px-3">
                               <Image
                                 src="/bloomy/star.png"
                                 alt=""
-                                width={16}
-                                height={16}
-                                className="h-6 w-6 object-contain"
+                                width={18}
+                                height={18}
+                                className="h-[18px] w-[18px] shrink-0 object-contain"
                               />
-
-                              +
-                              {
-                                habit.xp_reward
-                              }{" "}
-                              XP
+                              +{habit.xp_reward} XP
                             </span>
 
-                            <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                            <span className="inline-flex h-8 items-center gap-2 rounded-lg bg-white/5 px-3">
                               <Image
                                 src="/bloomy/coin.png"
                                 alt=""
-                                width={16}
-                                height={16}
-                                className="h-4 w-4 object-contain"
+                                width={18}
+                                height={18}
+                                className="h-[18px] w-[18px] shrink-0 object-contain"
                               />
-
-                              +
-                              {
-                                habit.coin_reward
-                              }{" "}
-                              coins
+                              +{habit.coin_reward} coins
                             </span>
                           </div>
                         </div>
@@ -733,7 +718,7 @@ export default function HabitsPage() {
                               alt=""
                               width={24}
                               height={24}
-                              className="h-6 w-6 shrink-0 object-contain"
+                              className="h-7 w-7 shrink-0 object-contain"
                             />
 
                             <span>
@@ -765,7 +750,7 @@ export default function HabitsPage() {
                                   alt=""
                                   width={24}
                                   height={24}
-                                  className="h-6 w-6 shrink-0 object-contain"
+                                  className="h-7 w-7 shrink-0 object-contain"
                                 />
 
                                 <span>
@@ -799,7 +784,7 @@ export default function HabitsPage() {
                                   alt=""
                                   width={24}
                                   height={24}
-                                  className="h-6 w-6 shrink-0 object-contain"
+                                  className="h-7 w-7 shrink-0 object-contain"
                                 />
 
                                 <span>
@@ -967,50 +952,35 @@ export default function HabitsPage() {
                                   "No description added."}
                               </p>
 
-                              <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
-                                <span className="rounded-lg bg-white/5 px-2 py-1 capitalize">
-                                  {
-                                    habit.frequency
-                                  }
+                              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                                <span className="inline-flex h-8 min-w-[88px] items-center justify-center rounded-lg bg-white/5 px-3 capitalize">
+                                  {habit.frequency}
                                 </span>
 
-                                <span className="rounded-lg bg-white/5 px-2 py-1">
-                                  {
-                                    habit.target_per_week
-                                  }
-                                  × weekly
+                                <span className="inline-flex h-8 min-w-[88px] items-center justify-center rounded-lg bg-white/5 px-3">
+                                  {habit.target_per_week}× weekly
                                 </span>
 
-                                <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                                <span className="inline-flex h-8 items-center gap-2 rounded-lg bg-white/5 px-3">
                                   <Image
                                     src="/bloomy/star.png"
                                     alt=""
-                                    width={16}
-                                    height={16}
-                                    className="h-4 w-4 object-contain"
+                                    width={18}
+                                    height={18}
+                                    className="h-[18px] w-[18px] shrink-0 object-contain"
                                   />
-
-                                  +
-                                  {
-                                    habit.xp_reward
-                                  }{" "}
-                                  XP
+                                  +{habit.xp_reward} XP
                                 </span>
 
-                                <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                                <span className="inline-flex h-8 items-center gap-2 rounded-lg bg-white/5 px-3">
                                   <Image
                                     src="/bloomy/coin.png"
                                     alt=""
-                                    width={16}
-                                    height={16}
-                                    className="h-4 w-4 object-contain"
+                                    width={18}
+                                    height={18}
+                                    className="h-[18px] w-[18px] shrink-0 object-contain"
                                   />
-
-                                  +
-                                  {
-                                    habit.coin_reward
-                                  }{" "}
-                                  coins
+                                  +{habit.coin_reward} coins
                                 </span>
                               </div>
                             </div>
@@ -1417,15 +1387,23 @@ function ConfirmationModal({
 
         <div className="p-6 sm:p-7">
           <div
-            className={`flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl ${
+            className={`flex h-16 w-16 items-center justify-center rounded-2xl border ${
               isDelete
                 ? "border-red-400/20 bg-red-500/10"
                 : "border-amber-400/20 bg-amber-500/10"
             }`}
           >
-            {isDelete
-              ? "🗑️"
-              : "📦"}
+            <Image
+              src={
+                isDelete
+                  ? "/bloomy/delete.png"
+                  : "/bloomy/archive.png"
+              }
+              alt=""
+              width={38}
+              height={38}
+              className="h-[38px] w-[38px] object-contain"
+            />
           </div>
 
           <p

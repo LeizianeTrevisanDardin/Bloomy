@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useStatistics } from "@/hooks/useStatistics";
+import Image from "next/image";
 
 export default function StatisticsPage() {
   const {
@@ -42,9 +43,20 @@ export default function StatisticsPage() {
             <p className="mt-7 text-xs font-medium uppercase tracking-[0.2em] text-purple-300">
               Your growth
             </p>
-            <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">
-              📊 Statistics
-            </h1>
+           <div className="mt-2 flex items-center gap-4">
+              <Image
+                src="/bloomy/statistics.png"
+                alt="Statistics"
+                width={50}
+                height={50}
+                className="h-[50px] w-[50px] object-contain"
+              />
+
+              <h1 className="text-4xl font-semibold sm:text-5xl">
+                Statistics
+              </h1>
+            </div>
+              
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
               Follow your consistency, rewards and completion
               progress across Bloomy.
@@ -73,7 +85,7 @@ export default function StatisticsPage() {
           <>
             <section className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <MetricCard
-                icon="🔥"
+                iconSrc="/bloomy/fire.png"
                 value={String(statistics.currentStreak)}
                 label="Current streak"
                 description={
@@ -84,21 +96,21 @@ export default function StatisticsPage() {
                 color="text-orange-300"
               />
               <MetricCard
-                icon="🏆"
+                iconSrc="/bloomy/prize.png"
                 value={String(statistics.level)}
                 label="Current level"
                 description="keep growing"
                 color="text-amber-300"
               />
               <MetricCard
-                icon="🪙"
+                iconSrc="/bloomy/coin.png"
                 value={statistics.coins.toLocaleString()}
                 label="Coins"
                 description="available balance"
                 color="text-yellow-300"
               />
               <MetricCard
-                icon="💎"
+                iconSrc="/bloomy/gem.png"
                 value={statistics.gems.toLocaleString()}
                 label="Gems"
                 description="available balance"
@@ -145,7 +157,7 @@ export default function StatisticsPage() {
 
             <section className="mt-4 grid gap-4 lg:grid-cols-3">
               <ProgressCard
-                icon="🌱"
+                iconSrc="/bloomy/habits.png"
                 title="Habits"
                 subtitle="Weekly consistency"
                 completed={statistics.weeklyHabitCompletions}
@@ -156,7 +168,7 @@ export default function StatisticsPage() {
                 href="/dashboard/habits"
               />
               <ProgressCard
-                icon="☑️"
+                iconSrc="/bloomy/tasks.png"
                 title="Tasks"
                 subtitle="Overall completion"
                 completed={statistics.completedTasks}
@@ -167,7 +179,7 @@ export default function StatisticsPage() {
                 href="/dashboard/tasks"
               />
               <ProgressCard
-                icon="🎯"
+                iconSrc="/bloomy/goals.png"
                 title="Goals"
                 subtitle="Overall completion"
                 completed={statistics.completedGoals}
@@ -190,7 +202,13 @@ export default function StatisticsPage() {
                       Habit progress
                     </h2>
                   </div>
-                  <span className="text-2xl">🌿</span>
+                  <Image
+                    src="/bloomy/plant.png"
+                    alt=""
+                    width={34}
+                    height={34}
+                    className="h-[34px] w-[34px] object-contain"
+                  />
                 </div>
 
                 <div className="mt-6 flex items-end justify-between gap-4">
@@ -225,17 +243,17 @@ export default function StatisticsPage() {
 
                 <div className="mt-5 space-y-3">
                   <SnapshotRow
-                    icon="🌱"
+                    iconSrc="/bloomy/habits.png"
                     label="Active habits"
                     value={statistics.activeHabits}
                   />
                   <SnapshotRow
-                    icon="📋"
+                    iconSrc="/bloomy/tasks.png"
                     label="Total tasks"
                     value={statistics.totalTasks}
                   />
                   <SnapshotRow
-                    icon="🎯"
+                    iconSrc="/bloomy/goals.png"
                     label="Total goals"
                     value={statistics.totalGoals}
                   />
@@ -250,13 +268,13 @@ export default function StatisticsPage() {
 }
 
 function MetricCard({
-  icon,
+  iconSrc,
   value,
   label,
   description,
   color,
 }: {
-  icon: string;
+  iconSrc: string;
   value: string;
   label: string;
   description: string;
@@ -265,16 +283,25 @@ function MetricCard({
   return (
     <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 sm:p-5">
       <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/5 text-xl">
-          {icon}
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/5">
+          <Image
+            src={iconSrc}
+            alt={label}
+            width={34}
+            height={34}
+            className="h-[34px] w-[34px] object-contain"
+          />
         </span>
+
         <p className={`truncate text-2xl font-semibold ${color}`}>
           {value}
         </p>
       </div>
+
       <p className="mt-4 text-sm font-medium text-zinc-200">
         {label}
       </p>
+
       <p className="mt-1 text-xs text-zinc-500">
         {description}
       </p>
@@ -283,7 +310,7 @@ function MetricCard({
 }
 
 function ProgressCard({
-  icon,
+  iconSrc,
   title,
   subtitle,
   completed,
@@ -293,7 +320,7 @@ function ProgressCard({
   accent,
   href,
 }: {
-  icon: string;
+  iconSrc: string;
   title: string;
   subtitle: string;
   completed: number;
@@ -307,24 +334,46 @@ function ProgressCard({
     <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold">
-            {icon} {title}
-          </h2>
-          <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
+          <div className="flex items-center gap-2">
+            <Image
+              src={iconSrc}
+              alt=""
+              width={30}
+              height={30}
+              className="h-[30px] w-[30px] object-contain"
+            />
+
+            <h2 className="text-lg font-semibold">
+              {title}
+            </h2>
+          </div>
+
+          <p className="mt-1 text-xs text-zinc-500">
+            {subtitle}
+          </p>
         </div>
+
         <span className={`text-lg font-semibold ${accent}`}>
           {Math.round(percentage)}%
         </span>
       </div>
 
       <p className="mt-6 text-sm text-zinc-400">
-        <span className="font-semibold text-zinc-100">{completed}</span>{" "}
-        of <span className="font-semibold text-zinc-100">{total}</span>{" "}
+        <span className="font-semibold text-zinc-100">
+          {completed}
+        </span>{" "}
+        of{" "}
+        <span className="font-semibold text-zinc-100">
+          {total}
+        </span>{" "}
         completed
       </p>
 
       <div className="mt-3">
-        <ProgressBar percentage={percentage} color={color} />
+        <ProgressBar
+          percentage={percentage}
+          color={color}
+        />
       </div>
 
       <Link
@@ -355,20 +404,30 @@ function ProgressBar({
 }
 
 function SnapshotRow({
-  icon,
+  iconSrc,
   label,
   value,
 }: {
-  icon: string;
+  iconSrc: string;
   label: string;
   value: number;
 }) {
   return (
     <div className="flex items-center justify-between rounded-xl bg-black/20 px-4 py-3">
-      <span className="text-sm text-zinc-400">
-        {icon} {label}
+      <span className="flex items-center gap-2 text-sm text-zinc-400">
+        <Image
+          src={iconSrc}
+          alt=""
+          width={22}
+          height={22}
+          className="h-[22px] w-[22px] object-contain"
+        />
+        {label}
       </span>
-      <span className="font-semibold text-zinc-200">{value}</span>
+
+      <span className="font-semibold text-zinc-200">
+        {value}
+      </span>
     </div>
   );
 }

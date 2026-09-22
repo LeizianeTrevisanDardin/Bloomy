@@ -6,6 +6,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 import { useProfile } from "@/hooks/useProfiles";
 import { createClient } from "@/lib/supabase/client";
@@ -201,9 +202,19 @@ function SettingsContent({
           <p className="mt-7 text-xs font-medium uppercase tracking-[0.2em] text-purple-300">
             Your account
           </p>
-          <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">
-            ⚙️ Settings
-          </h1>
+          <div className="mt-2 flex items-center gap-4">
+              <Image
+                src="/bloomy/settings.png"
+                alt="Statistics"
+                width={50}
+                height={50}
+                className="h-[60px] w-[60px] object-contain"
+              />
+
+              <h1 className="text-4xl font-semibold sm:text-5xl">
+                Settings
+              </h1>
+            </div>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
             Update your Bloomy profile and manage your account.
           </p>
