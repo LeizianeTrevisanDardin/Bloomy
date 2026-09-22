@@ -9,6 +9,8 @@ import type {
   FormEvent,
 } from "react";
 
+import Image from "next/image";
+
 import {
   useTasks,
 } from "@/hooks/useTasks";
@@ -263,9 +265,20 @@ export default function TasksPanel({
               Daily focus
             </p>
 
-            <h2 className="mt-1 text-xl font-semibold text-white">
-              📋 Today&apos;s Tasks
-            </h2>
+          <h2 className="mt-1 flex items-center gap-5 text-xl font-semibold text-white">
+            <Image
+              src="/bloomy/tasks.png"
+              alt=""
+              width={38}
+              height={38}
+              className="h-8 w-8 shrink-0 object-contain"
+            />
+
+            <span>
+              Today&apos;s Tasks
+            </span>
+          </h2>
+           
           </div>
 
           <div className="flex items-center gap-3">

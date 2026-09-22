@@ -8,6 +8,8 @@ import type {
   FormEvent,
 } from "react";
 
+import Image from "next/image";
+
 import {
   useGoals,
 } from "@/hooks/useGoals";
@@ -26,19 +28,90 @@ type GoalsPanelProps = {
 };
 
 const iconOptions = [
-  "🎯",
-  "💼",
-  "💰",
-  "📚",
-  "🏋️",
-  "🏠",
-  "✈️",
-  "💻",
-  "🌱",
-  "🏆",
-  "❤️",
-  "⭐",
+  {
+    value: "🎯",
+    src: "/bloomy/goals.png",
+    label: "Goal",
+    size: 44,
+  },
+  {
+    value: "💼",
+    src: "/bloomy/career.png",
+    label: "Career",
+    size: 36,
+  },
+  {
+    value: "💰",
+    src: "/bloomy/money.png",
+    label: "Money",
+    size: 44,
+  },
+  {
+    value: "📚",
+    src: "/bloomy/book.png",
+    label: "Reading",
+    size: 44,
+  },
+  {
+    value: "🏋️",
+    src: "/bloomy/exercise.png",
+    label: "Fitness",
+    size: 44,
+  },
+  {
+    value: "🏠",
+    src: "/bloomy/home.png",
+    label: "Home",
+    size: 44,
+  },
+  {
+    value: "✈️",
+    src: "/bloomy/travel.png",
+    label: "Travel",
+    size: 44,
+  },
+  {
+    value: "💻",
+    src: "/bloomy/pc.png",
+    label: "Computer",
+    size: 44,
+  },
+  {
+    value: "🌱",
+    src: "/bloomy/plant.png",
+    label: "Growth",
+    size: 44,
+  },
+  {
+    value: "🏆",
+    src: "/bloomy/prize.png",
+    label: "Achievement",
+    size: 44,
+  },
+  {
+    value: "❤️",
+    src: "/bloomy/love.png",
+    label: "Health",
+    size: 44,
+  },
+  {
+    value: "⭐",
+    src: "/bloomy/star.png",
+    label: "Star",
+    size: 44,
+  },
 ];
+
+function getGoalIconOption(
+  icon: string,
+) {
+  return (
+    iconOptions.find(
+      (option) =>
+        option.value === icon,
+    ) ?? iconOptions[0]
+  );
+}
 
 const difficultyOptions: {
   value: GoalDifficulty;
@@ -316,8 +389,18 @@ export default function GoalsPanel({
               Long-term progress
             </p>
 
-            <h2 className="mt-1 text-xl font-semibold text-white">
-              🎯 Goals
+           <h2 className="mt-1 flex items-center gap-2 text-xl font-semibold text-white">
+              <Image
+                src="/bloomy/goals.png"
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 shrink-0 object-contain"
+              />
+
+              <span>
+                Goals
+              </span>
             </h2>
           </div>
 
@@ -369,9 +452,15 @@ export default function GoalsPanel({
           !error &&
           goals.length === 0 && (
             <div className="rounded-2xl border border-dashed border-white/10 bg-black/10 px-4 py-8 text-center">
-              <span className="text-3xl">
-                🎯
-              </span>
+              <div className="flex justify-center">
+                <Image
+                  src="/bloomy/goals.png"
+                  alt=""
+                  width={52}
+                  height={52}
+                  className="h-[52px] w-[52px] object-contain"
+                />
+              </div>
 
               <p className="mt-3 text-sm font-medium text-zinc-200">
                 No goals yet
@@ -418,11 +507,27 @@ export default function GoalsPanel({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl">
-                            {
-                              goal.icon
-                            }
-                          </span>
+                          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                            {getGoalIconOption(
+                              goal.icon,
+                            ).src ? (
+                              <Image
+                                src={
+                                  getGoalIconOption(
+                                    goal.icon,
+                                  ).src!
+                                }
+                                alt=""
+                                width={44}
+                                height={44}
+                                className="h-11 w-11 object-contain"
+                              />
+                            ) : (
+                              <span className="text-2xl">
+                                {goal.icon}
+                              </span>
+                            )}
+                           </span>
 
                           <div className="min-w-0">
                             <p
@@ -484,16 +589,33 @@ export default function GoalsPanel({
                           )}
                         </span>
 
-                        <span>
-                          +
-                          {
-                            goal.xp_reward
-                          }{" "}
-                          XP · 🪙
-                          {
-                            goal.coin_reward
-                          }
-                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1">
+                            <Image
+                              src="/bloomy/star.png"
+                              alt=""
+                              width={18}
+                              height={18}
+                              className="h-[18px] w-[18px] shrink-0 object-contain"
+                            />
+                            +{goal.xp_reward} XP
+                          </span>
+
+                          <span className="text-zinc-600">
+                            ·
+                          </span>
+
+                          <span className="inline-flex items-center gap-1">
+                            <Image
+                              src="/bloomy/coin.png"
+                              alt=""
+                              width={18}
+                              height={18}
+                              className="h-[18px] w-[18px] shrink-0 object-contain"
+                            />
+                            +{goal.coin_reward}
+                          </span>
+                         </span>
                       </div>
                     </button>
                   );
@@ -639,40 +761,55 @@ export default function GoalsPanel({
 
               {/* ICONS */}
 
-              <div>
-                <p className="text-sm text-zinc-200">
-                  Icon
-                </p>
+                <div>
+                  <p className="text-sm text-zinc-200">
+                    Icon
+                  </p>
 
-                <div className="mt-2 grid grid-cols-6 gap-2">
-                  {iconOptions.map(
-                    (icon) => (
-                      <button
-                        key={icon}
-                        type="button"
-                        onClick={() => {
-                          setForm(
-                            (
-                              current,
-                            ) => ({
-                              ...current,
-                              icon,
-                            }),
-                          );
-                        }}
-                        className={`aspect-square rounded-xl border text-xl ${
-                          form.icon ===
-                          icon
-                            ? "border-purple-400/50 bg-purple-400/15"
-                            : "border-white/10 bg-black/20"
-                        }`}
-                      >
-                        {icon}
-                      </button>
-                    ),
-                  )}
+                  <div className="mt-2 grid grid-cols-6 gap-2">
+                    {iconOptions.map(
+                      (option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setForm(
+                              (current) => ({
+                                ...current,
+                                icon: option.value,
+                              }),
+                            );
+                          }}
+                          className={`flex aspect-square items-center justify-center rounded-xl border transition ${
+                            form.icon === option.value
+                              ? "border-purple-400/50 bg-purple-400/15"
+                              : "border-white/10 bg-black/20 hover:bg-white/5"
+                          }`}
+                          aria-label={`Select ${option.label}`}
+                          title={option.label}
+                        >
+                          {option.src ? (
+                            <Image
+                              src={option.src}
+                              alt={option.label}
+                              width={option.size}
+                              height={option.size}
+                              style={{
+                                width: option.size,
+                                height: option.size,
+                              }}
+                              className="object-contain"
+                            />
+                          ) : (
+                            <span className="text-2xl">
+                              {option.value}
+                            </span>
+                          )}
+                        </button>
+                      ),
+                    )}
+                  </div>
                 </div>
-              </div>
 
               {/* CATEGORY AND UNIT */}
 
@@ -997,9 +1134,32 @@ export default function GoalsPanel({
               Update progress
             </p>
 
-            <h2 className="mt-2 text-xl font-semibold">
-              {progressGoal.icon}{" "}
-              {progressGoal.title}
+            <h2 className="mt-2 flex items-center gap-3 text-xl font-semibold">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10">
+                {getGoalIconOption(
+                  progressGoal.icon,
+                ).src ? (
+                  <Image
+                    src={
+                      getGoalIconOption(
+                        progressGoal.icon,
+                      ).src!
+                    }
+                    alt=""
+                    width={38}
+                    height={38}
+                    className="h-[38px] w-[38px] object-contain"
+                  />
+                ) : (
+                  <span className="text-2xl">
+                    {progressGoal.icon}
+                  </span>
+                )}
+              </span>
+
+              <span>
+                {progressGoal.title}
+              </span>
             </h2>
 
             <p className="mt-2 text-sm text-zinc-500">

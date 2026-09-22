@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
+import Image from "next/image";
 
 import ClockCard from "@/components/ClockCard";
 import BloomyWorld from "@/components/BloomyWorld";
@@ -22,8 +26,14 @@ import { createClient } from "@/lib/supabase/client";
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [supabase] = useState(() => createClient());
-  const [signingOut, setSigningOut] = useState(false);
+  const [supabase] = useState(
+    () => createClient(),
+  );
+
+  const [
+    signingOut,
+    setSigningOut,
+  ] = useState(false);
 
   const {
     weather,
@@ -44,40 +54,54 @@ export default function DashboardPage() {
     error: statisticsError,
   } = useStatistics();
 
-  const currentLevel = profile?.level ?? 1;
-  const currentXP = profile?.xp ?? 0;
-  const xpGoal = currentLevel * 100;
+  const currentLevel =
+    profile?.level ?? 1;
 
-  const xpProgress = Math.min(
-    100,
-    (currentXP / xpGoal) * 100,
-  );
+  const currentXP =
+    profile?.xp ?? 0;
 
-  const displayName = profileLoading
-    ? "Loading..."
-    : profile?.display_name || "Bloomy User";
+  const xpGoal =
+    currentLevel * 100;
 
-  const handleSignOut = async () => {
-    try {
-      setSigningOut(true);
+  const xpProgress =
+    Math.min(
+      100,
+      (currentXP / xpGoal) * 100,
+    );
 
-      const { error: signOutError } =
-        await supabase.auth.signOut();
+  const displayName =
+    profileLoading
+      ? "Loading..."
+      : profile?.display_name ||
+        "Bloomy User";
 
-      if (signOutError) {
-        throw signOutError;
+  const handleSignOut =
+    async () => {
+      try {
+        setSigningOut(true);
+
+        const {
+          error: signOutError,
+        } =
+          await supabase.auth.signOut();
+
+        if (signOutError) {
+          throw signOutError;
+        }
+
+        router.replace(
+          "/login",
+        );
+
+        router.refresh();
+      } catch {
+        setSigningOut(false);
+
+        window.alert(
+          "Unable to sign out. Please try again.",
+        );
       }
-
-      router.replace("/login");
-      router.refresh();
-    } catch {
-      setSigningOut(false);
-
-      window.alert(
-        "Unable to sign out. Please try again.",
-      );
-    }
-  };
+    };
 
   return (
     <div className="min-h-screen bg-[#0c0c0f] text-white">
@@ -94,14 +118,16 @@ export default function DashboardPage() {
                 style={
                   profile?.avatar_url
                     ? {
-                        backgroundImage: `url(${profile.avatar_url})`,
+                        backgroundImage:
+                          `url(${profile.avatar_url})`,
                       }
                     : undefined
                 }
                 role="img"
                 aria-label="Profile photo"
               >
-                {!profile?.avatar_url && "👩🏻"}
+                {!profile?.avatar_url &&
+                  "👩🏻"}
               </div>
 
               <div>
@@ -110,7 +136,8 @@ export default function DashboardPage() {
                 </p>
 
                 <p className="mt-1 text-xs text-purple-300">
-                  Level {currentLevel}
+                  Level{" "}
+                  {currentLevel}
                 </p>
               </div>
             </div>
@@ -124,7 +151,8 @@ export default function DashboardPage() {
                 </span>
 
                 <span className="text-zinc-300">
-                  {currentXP.toLocaleString()} /{" "}
+                  {currentXP.toLocaleString()}{" "}
+                  /{" "}
                   {xpGoal.toLocaleString()}
                 </span>
               </div>
@@ -134,14 +162,19 @@ export default function DashboardPage() {
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-[width] duration-500"
                     style={{
-                      width: `${xpProgress}%`,
+                      width:
+                        `${xpProgress}%`,
                     }}
                   />
                 </div>
 
-                <span className="text-lg">
-                  ⭐
-                </span>
+                <Image
+                  src="/bloomy/star.png"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="h-7 w-7 shrink-0 object-contain"
+                />
               </div>
             </div>
 
@@ -149,50 +182,50 @@ export default function DashboardPage() {
 
             <nav className="mt-10 space-y-2 text-sm text-zinc-400">
               <SidebarButton
-                icon="🏠"
+                icon="/bloomy/home.png"
                 label="Overview"
                 href="/dashboard"
                 active
               />
 
               <SidebarButton
-                icon="🌱"
+                icon="/bloomy/habits.png"
                 label="Habits"
                 href="/dashboard/habits"
               />
 
               <SidebarButton
-                icon="☑️"
+                icon="/bloomy/tasks.png"
                 label="Tasks"
                 href="/dashboard/tasks"
               />
 
               <SidebarButton
-                icon="🎯"
+                icon="/bloomy/goals.png"
                 label="Goals"
                 href="/dashboard/goals"
               />
 
               <SidebarButton
-                icon="🗓️"
+                icon="/bloomy/calendar.png"
                 label="Calendar"
                 href="/dashboard/calendar"
               />
 
               <SidebarButton
-                icon="📊"
+                icon="/bloomy/statistics.png"
                 label="Statistics"
                 href="/dashboard/statistics"
               />
 
               <SidebarButton
-                icon="🛍️"
+                icon="/bloomy/shop.png"
                 label="Shop"
                 href="/dashboard/shop"
               />
 
               <SidebarButton
-                icon="⚙️"
+                icon="/bloomy/settings.png"
                 label="Settings"
                 href="/dashboard/settings"
               />
@@ -203,13 +236,21 @@ export default function DashboardPage() {
             <div className="mt-4 border-t border-white/[0.06] pt-4">
               <button
                 type="button"
-                onClick={() => void handleSignOut()}
-                disabled={signingOut}
+                onClick={() =>
+                  void handleSignOut()
+                }
+                disabled={
+                  signingOut
+                }
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm text-zinc-400 transition hover:bg-red-500/10 hover:text-red-200 disabled:cursor-wait disabled:opacity-50"
               >
-                <span className="flex w-6 justify-center text-base">
-                  ↪️
-                </span>
+                <Image
+                  src="/bloomy/logout.png"
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 shrink-0 object-contain"
+                />
 
                 <span>
                   {signingOut
@@ -222,20 +263,32 @@ export default function DashboardPage() {
             {/* REMINDER */}
 
             <div className="mt-auto rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.06] to-purple-500/[0.05] p-4">
-              <span className="text-2xl">
-                🌱
-              </span>
+              <Image
+                src="/bloomy/habits.png"
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+              />
 
               <p className="mt-3 text-sm font-medium text-zinc-200">
                 Reminder
               </p>
 
               <p className="mt-1 text-xs leading-5 text-zinc-400">
-                Small actions every day change everything.
+                Small actions every
+                day change
+                everything.
               </p>
 
-              <div className="mt-3 text-right text-purple-400">
-                ♥
+              <div className="mt-3 flex justify-end">
+                <Image
+                  src="/bloomy/love.png"
+                  alt=""
+                  width={26}
+                  height={26}
+                  className="h-[26px] w-[26px] object-contain"
+                />
               </div>
             </div>
           </div>
@@ -254,14 +307,16 @@ export default function DashboardPage() {
                   style={
                     profile?.avatar_url
                       ? {
-                          backgroundImage: `url(${profile.avatar_url})`,
+                          backgroundImage:
+                            `url(${profile.avatar_url})`,
                         }
                       : undefined
                   }
                   role="img"
                   aria-label="Profile photo"
                 >
-                  {!profile?.avatar_url && "👩🏻"}
+                  {!profile?.avatar_url &&
+                    "👩🏻"}
                 </div>
 
                 <div className="min-w-0 flex-1">
@@ -272,13 +327,18 @@ export default function DashboardPage() {
                       </p>
 
                       <p className="mt-0.5 text-xs text-purple-300">
-                        Level {currentLevel}
+                        Level{" "}
+                        {
+                          currentLevel
+                        }
                       </p>
                     </div>
 
                     <span className="shrink-0 text-xs text-zinc-300">
-                      {currentXP.toLocaleString()} /{" "}
-                      {xpGoal.toLocaleString()} XP
+                      {currentXP.toLocaleString()}{" "}
+                      /{" "}
+                      {xpGoal.toLocaleString()}{" "}
+                      XP
                     </span>
                   </div>
 
@@ -286,7 +346,8 @@ export default function DashboardPage() {
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-400 transition-[width] duration-500"
                       style={{
-                        width: `${xpProgress}%`,
+                        width:
+                          `${xpProgress}%`,
                       }}
                     />
                   </div>
@@ -297,16 +358,22 @@ export default function DashboardPage() {
 
               <section className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#151419]">
                 <BloomyWorld
-                  automaticScene={automaticScene}
+                  automaticScene={
+                    automaticScene
+                  }
                 />
 
                 <ClockCard />
 
                 <WeatherCard
                   weather={weather}
-                  loading={loading}
+                  loading={
+                    loading
+                  }
                   error={error}
-                  automaticScene={automaticScene}
+                  automaticScene={
+                    automaticScene
+                  }
                 />
 
                 {/* COINS AND SHOP */}
@@ -314,9 +381,12 @@ export default function DashboardPage() {
                 <div className="absolute inset-x-3 bottom-2 z-30 flex items-end justify-between gap-2 md:inset-x-4 md:bottom-3">
                   <div className="flex min-w-0 gap-2">
                     <WorldStat
-                      icon="🪙"
+                      icon="/bloomy/coin.png"
                       label="Coins"
-                      value={String(profile?.coins ?? 0)}
+                      value={String(
+                        profile?.coins ??
+                          0,
+                      )}
                     />
                   </div>
 
@@ -324,9 +394,14 @@ export default function DashboardPage() {
                     href="/dashboard/shop"
                     className="pointer-events-auto flex min-h-11 shrink-0 touch-manipulation items-center gap-2 rounded-xl border border-purple-400/20 bg-black/75 px-4 text-sm font-medium text-purple-100 shadow-lg backdrop-blur-md transition hover:bg-purple-950/90"
                   >
-                    <span aria-hidden="true">
-                      🛍️
-                    </span>
+                    <Image
+                      src="/bloomy/shop.png"
+                      alt=""
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 shrink-0 object-contain"
+                    />
+
                     Shop
                   </Link>
                 </div>
@@ -337,19 +412,25 @@ export default function DashboardPage() {
               <section className="grid grid-cols-1 items-stretch gap-3 md:grid-cols-2 2xl:grid-cols-3">
                 <div className="h-full min-w-0">
                   <HabitsPanel
-                    onRewardsUpdated={refreshProfile}
+                    onRewardsUpdated={
+                      refreshProfile
+                    }
                   />
                 </div>
 
                 <div className="h-full min-w-0">
                   <TasksPanel
-                    onRewardsUpdated={refreshProfile}
+                    onRewardsUpdated={
+                      refreshProfile
+                    }
                   />
                 </div>
 
                 <div className="h-full min-w-0 md:col-span-2 2xl:col-span-1">
                   <GoalsPanel
-                    onRewardsUpdated={refreshProfile}
+                    onRewardsUpdated={
+                      refreshProfile
+                    }
                   />
                 </div>
               </section>
@@ -360,9 +441,15 @@ export default function DashboardPage() {
                 <CalendarPanel />
 
                 <StatisticsPanel
-                  statistics={statistics}
-                  loading={statisticsLoading}
-                  error={statisticsError}
+                  statistics={
+                    statistics
+                  }
+                  loading={
+                    statisticsLoading
+                  }
+                  error={
+                    statisticsError
+                  }
                 />
               </section>
             </div>
@@ -377,31 +464,31 @@ export default function DashboardPage() {
         className="fixed inset-x-0 bottom-0 z-[100] grid grid-cols-5 border-t border-white/10 bg-[#101014]/95 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl lg:hidden"
       >
         <MobileNavButton
-          icon="🏠"
+          icon="/bloomy/home.png"
           label="Home"
           href="/dashboard"
         />
 
         <MobileNavButton
-          icon="🌱"
+          icon="/bloomy/habits.png"
           label="Habits"
           href="/dashboard/habits"
         />
 
         <MobileNavButton
-          icon="☑️"
+          icon="/bloomy/tasks.png"
           label="Tasks"
           href="/dashboard/tasks"
         />
 
         <MobileNavButton
-          icon="🎯"
+          icon="/bloomy/goals.png"
           label="Goals"
           href="/dashboard/goals"
         />
 
         <MobileNavButton
-          icon="⚙️"
+          icon="/bloomy/settings.png"
           label="Settings"
           href="/dashboard/settings"
         />
@@ -409,6 +496,10 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+// =================================
+// MOBILE NAV
+// =================================
 
 function MobileNavButton({
   icon,
@@ -419,29 +510,38 @@ function MobileNavButton({
   label: string;
   href: string;
 }) {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
 
   const active =
     href === "/dashboard"
-      ? pathname === "/dashboard"
-      : pathname.startsWith(href);
+      ? pathname ===
+        "/dashboard"
+      : pathname.startsWith(
+          href,
+        );
 
   return (
     <Link
       href={href}
-      aria-current={active ? "page" : undefined}
+      aria-current={
+        active
+          ? "page"
+          : undefined
+      }
       className={`flex min-w-0 touch-manipulation flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[10px] transition ${
         active
           ? "bg-purple-500/15 text-purple-200"
           : "text-zinc-500 hover:bg-white/5 hover:text-zinc-200"
       }`}
     >
-      <span
-        aria-hidden="true"
-        className="text-base"
-      >
-        {icon}
-      </span>
+      <Image
+        src={icon}
+        alt=""
+        width={30}
+        height={30}
+        className="h-[30px] w-[30px] shrink-0 object-contain"
+      />
 
       <span className="max-w-full truncate">
         {label}
@@ -449,6 +549,10 @@ function MobileNavButton({
     </Link>
   );
 }
+
+// =================================
+// SIDEBAR BUTTON
+// =================================
 
 function SidebarButton({
   icon,
@@ -470,14 +574,24 @@ function SidebarButton({
           : "hover:bg-white/[0.05] hover:text-white"
       }`}
     >
-      <span className="flex w-6 justify-center text-base">
-        {icon}
-      </span>
+      <Image
+        src={icon}
+        alt=""
+        width={32}
+        height={32}
+        className="h-8 w-8 shrink-0 object-contain"
+      />
 
-      <span>{label}</span>
+      <span>
+        {label}
+      </span>
     </Link>
   );
 }
+
+// =================================
+// WORLD STAT
+// =================================
 
 function WorldStat({
   icon,
@@ -493,10 +607,14 @@ function WorldStat({
   progress?: string;
 }) {
   return (
-    <div className="flex h-[40px] min-w-[80px] items-center gap-2 rounded-xl border border-white/10 bg-black/70 px-3 shadow-lg backdrop-blur-lx md:min-w-[125px]">
-      <span className="shrink-0 text-base">
-        {icon}
-      </span>
+    <div className="flex h-[44px] min-w-[90px] items-center gap-2 rounded-xl border border-white/10 bg-black/70 px-3 shadow-lg backdrop-blur-xl md:min-w-[130px]">
+      <Image
+        src={icon}
+        alt=""
+        width={32}
+        height={32}
+        className="h-8 w-8 shrink-0 object-contain"
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
@@ -509,25 +627,42 @@ function WorldStat({
           </span>
         </div>
 
-        {progress && color && (
-          <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
-            <div
-              className={`h-full rounded-full ${color}`}
-              style={{ width: progress }}
-            />
-          </div>
-        )}
+        {progress &&
+          color && (
+            <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
+              <div
+                className={`h-full rounded-full ${color}`}
+                style={{
+                  width:
+                    progress,
+                }}
+              />
+            </div>
+          )}
       </div>
     </div>
   );
 }
 
-function CalendarPanel() {
-  const { tasks } = useTasks();
-  const { goals } = useGoals();
+// =================================
+// CALENDAR
+// =================================
 
-  const [visibleMonth, setVisibleMonth] = useState(() => {
-    const today = new Date();
+function CalendarPanel() {
+  const {
+    tasks,
+  } = useTasks();
+
+  const {
+    goals,
+  } = useGoals();
+
+  const [
+    visibleMonth,
+    setVisibleMonth,
+  ] = useState(() => {
+    const today =
+      new Date();
 
     return new Date(
       today.getFullYear(),
@@ -536,58 +671,119 @@ function CalendarPanel() {
     );
   });
 
-  const [selectedDate, setSelectedDate] = useState(
-    () => getDateKey(new Date()),
+  const [
+    selectedDate,
+    setSelectedDate,
+  ] = useState(
+    () =>
+      getDateKey(
+        new Date(),
+      ),
   );
 
   const weekDays = [
-    "M", "T", "W", "T", "F", "S", "S",
+    "M",
+    "T",
+    "W",
+    "T",
+    "F",
+    "S",
+    "S",
   ];
 
-  const year = visibleMonth.getFullYear();
-  const month = visibleMonth.getMonth();
+  const year =
+    visibleMonth.getFullYear();
 
-  const daysInMonth = new Date(
-    year,
-    month + 1,
-    0,
-  ).getDate();
+  const month =
+    visibleMonth.getMonth();
+
+  const daysInMonth =
+    new Date(
+      year,
+      month + 1,
+      0,
+    ).getDate();
 
   const leadingEmptyDays =
-    (new Date(year, month, 1).getDay() + 6) % 7;
+    (
+      new Date(
+        year,
+        month,
+        1,
+      ).getDay() + 6
+    ) % 7;
 
-  const calendarCells: (number | null)[] = [
-    ...Array.from(
-      { length: leadingEmptyDays },
-      () => null,
-    ),
-    ...Array.from(
-      { length: daysInMonth },
-      (_, index) => index + 1,
-    ),
-  ];
-
-  const todayKey = getDateKey(new Date());
-
-  const taskDates = new Set(
-    tasks
-      .map((task) => task.due_date)
-      .filter(
-        (date): date is string => Boolean(date),
+  const calendarCells:
+    (
+      | number
+      | null
+    )[] = [
+      ...Array.from(
+        {
+          length:
+            leadingEmptyDays,
+        },
+        () => null,
       ),
-  );
 
-  const goalDates = new Set(
-    goals
-      .map((goal) => goal.deadline)
-      .filter(
-        (date): date is string => Boolean(date),
+      ...Array.from(
+        {
+          length:
+            daysInMonth,
+        },
+        (
+          _,
+          index,
+        ) =>
+          index + 1,
       ),
-  );
+    ];
 
-  const changeMonth = (offset: number) => {
+  const todayKey =
+    getDateKey(
+      new Date(),
+    );
+
+  const taskDates =
+    new Set(
+      tasks
+        .map(
+          (task) =>
+            task.due_date,
+        )
+        .filter(
+          (
+            date,
+          ): date is string =>
+            Boolean(date),
+        ),
+    );
+
+  const goalDates =
+    new Set(
+      goals
+        .map(
+          (goal) =>
+            goal.deadline,
+        )
+        .filter(
+          (
+            date,
+          ): date is string =>
+            Boolean(date),
+        ),
+    );
+
+  const changeMonth = (
+    offset: number,
+  ) => {
     setVisibleMonth(
-      new Date(year, month + offset, 1),
+      new Date(
+        year,
+        month +
+          offset,
+        1,
+      ),
     );
   };
 
@@ -598,13 +794,27 @@ function CalendarPanel() {
           href="/dashboard/calendar"
           className="text-lg font-semibold text-zinc-100 transition hover:text-purple-200"
         >
-          🗓️ Calendar
+          <span className="flex items-center gap-2">
+            <Image
+              src="/bloomy/calendar.png"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 object-contain"
+            />
+
+            Calendar
+          </span>
         </Link>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => changeMonth(-1)}
+            onClick={() =>
+              changeMonth(
+                -1,
+              )
+            }
             aria-label="Previous month"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/5 hover:text-white"
           >
@@ -613,7 +823,11 @@ function CalendarPanel() {
 
           <button
             type="button"
-            onClick={() => changeMonth(1)}
+            onClick={() =>
+              changeMonth(
+                1,
+              )
+            }
             aria-label="Next month"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-white/5 hover:text-white"
           >
@@ -623,84 +837,130 @@ function CalendarPanel() {
       </div>
 
       <p className="mt-3 text-center text-sm font-medium text-zinc-300">
-        {new Intl.DateTimeFormat("en-CA", {
-          month: "long",
-          year: "numeric",
-        }).format(visibleMonth)}
+        {new Intl.DateTimeFormat(
+          "en-CA",
+          {
+            month:
+              "long",
+            year:
+              "numeric",
+          },
+        ).format(
+          visibleMonth,
+        )}
       </p>
 
       <div className="mt-4 grid grid-cols-7 gap-2 text-center">
-        {weekDays.map((day, index) => (
-          <div
-            key={`${day}-${index}`}
-            className="text-xs text-zinc-500"
-          >
-            {day}
-          </div>
-        ))}
+        {weekDays.map(
+          (
+            day,
+            index,
+          ) => (
+            <div
+              key={`${day}-${index}`}
+              className="text-xs text-zinc-500"
+            >
+              {day}
+            </div>
+          ),
+        )}
 
-        {calendarCells.map((dayNumber, index) => {
-          if (dayNumber === null) {
+        {calendarCells.map(
+          (
+            dayNumber,
+            index,
+          ) => {
+            if (
+              dayNumber ===
+              null
+            ) {
+              return (
+                <div
+                  key={`empty-${index}`}
+                  aria-hidden="true"
+                />
+              );
+            }
+
+            const date =
+              new Date(
+                year,
+                month,
+                dayNumber,
+              );
+
+            const dateKey =
+              getDateKey(
+                date,
+              );
+
+            const isToday =
+              dateKey ===
+              todayKey;
+
+            const isSelected =
+              dateKey ===
+              selectedDate;
+
+            const hasTask =
+              taskDates.has(
+                dateKey,
+              );
+
+            const hasGoal =
+              goalDates.has(
+                dateKey,
+              );
+
             return (
               <div
-                key={`empty-${index}`}
-                aria-hidden="true"
-              />
-            );
-          }
-
-          const date = new Date(
-            year,
-            month,
-            dayNumber,
-          );
-
-          const dateKey = getDateKey(date);
-          const isToday = dateKey === todayKey;
-          const isSelected = dateKey === selectedDate;
-          const hasTask = taskDates.has(dateKey);
-          const hasGoal = goalDates.has(dateKey);
-
-          return (
-            <div
-              key={dateKey}
-              className="flex flex-col items-center gap-1"
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedDate(dateKey)}
-                aria-label={`Select ${dateKey}`}
-                className={`flex aspect-square w-full items-center justify-center rounded-lg border text-xs transition ${
-                  isSelected
-                    ? "border-purple-400/30 bg-purple-500 text-white shadow-lg shadow-purple-500/20"
-                    : isToday
-                      ? "border-purple-400/40 bg-purple-500/10 text-purple-200"
-                      : "border-transparent text-zinc-300 hover:bg-white/5"
-                }`}
+                key={
+                  dateKey
+                }
+                className="flex flex-col items-center gap-1"
               >
-                {dayNumber}
-              </button>
-
-              <div className="flex h-1 gap-1">
-                <span
-                  className={`h-1 w-1 rounded-full ${
-                    hasTask
-                      ? "bg-sky-400"
-                      : "bg-transparent"
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedDate(
+                      dateKey,
+                    )
+                  }
+                  aria-label={`Select ${dateKey}`}
+                  className={`flex aspect-square w-full items-center justify-center rounded-lg border text-xs transition ${
+                    isSelected
+                      ? "border-purple-400/30 bg-purple-500 text-white shadow-lg shadow-purple-500/20"
+                      : isToday
+                        ? "border-purple-400/40 bg-purple-500/10 text-purple-200"
+                        : "border-transparent text-zinc-300 hover:bg-white/5"
                   }`}
-                />
+                >
+                  {
+                    dayNumber
+                  }
+                </button>
 
-                <span
-                  className={`h-1 w-1 rounded-full ${
-                    hasGoal
-                      ? "bg-emerald-400"
-                      : "bg-transparent"
-                  }`}
-                />
+                <div className="flex h-1 gap-1">
+                  <span
+                    className={`h-1 w-1 rounded-full ${
+                      hasTask
+                        ? "bg-sky-400"
+                        : "bg-transparent"
+                    }`}
+                  />
+
+                  <span
+                    className={`h-1 w-1 rounded-full ${
+                      hasGoal
+                        ? "bg-emerald-400"
+                        : "bg-transparent"
+                    }`}
+                  />
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          },
+        )}
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-white/[0.06] pt-3 text-[10px] text-zinc-500">
@@ -727,19 +987,35 @@ function CalendarPanel() {
   );
 }
 
-function getDateKey(date: Date) {
-  const year = date.getFullYear();
+function getDateKey(
+  date: Date,
+) {
+  const year =
+    date.getFullYear();
 
-  const month = String(
-    date.getMonth() + 1,
-  ).padStart(2, "0");
+  const month =
+    String(
+      date.getMonth() +
+        1,
+    ).padStart(
+      2,
+      "0",
+    );
 
-  const day = String(
-    date.getDate(),
-  ).padStart(2, "0");
+  const day =
+    String(
+      date.getDate(),
+    ).padStart(
+      2,
+      "0",
+    );
 
   return `${year}-${month}-${day}`;
 }
+
+// =================================
+// STATISTICS
+// =================================
 
 function StatisticsPanel({
   statistics,
@@ -752,27 +1028,49 @@ function StatisticsPanel({
     currentStreak: number;
     habitWeeklyRate: number;
   };
+
   loading: boolean;
-  error: string | null;
+
+  error:
+    | string
+    | null;
 }) {
   if (loading) {
     return (
       <div className="min-h-[270px] min-w-0 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
         <h2 className="text-lg font-semibold text-zinc-100">
-          📊 Statistics
+          <span className="flex items-center gap-2">
+            <Image
+              src="/bloomy/statistics.png"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 object-contain"
+            />
+
+            Statistics
+          </span>
         </h2>
 
         <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
-          {[0, 1, 2, 3].map((item) => (
-            <div
-              key={item}
-              className="h-[145px] animate-pulse rounded-xl bg-black/20 p-4"
-            >
-              <div className="h-7 w-20 rounded bg-white/10" />
-              <div className="mt-6 h-3 w-24 rounded bg-white/10" />
-              <div className="mt-3 h-3 w-14 rounded bg-white/10" />
-            </div>
-          ))}
+          {[0, 1, 2, 3].map(
+            (
+              item,
+            ) => (
+              <div
+                key={
+                  item
+                }
+                className="h-[145px] animate-pulse rounded-xl bg-black/20 p-4"
+              >
+                <div className="h-7 w-20 rounded bg-white/10" />
+
+                <div className="mt-6 h-3 w-24 rounded bg-white/10" />
+
+                <div className="mt-3 h-3 w-14 rounded bg-white/10" />
+              </div>
+            ),
+          )}
         </div>
       </div>
     );
@@ -782,7 +1080,17 @@ function StatisticsPanel({
     return (
       <div className="min-h-[270px] min-w-0 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
         <h2 className="text-lg font-semibold text-zinc-100">
-          📊 Statistics
+          <span className="flex items-center gap-2">
+            <Image
+              src="/bloomy/statistics.png"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 object-contain"
+            />
+
+            Statistics
+          </span>
         </h2>
 
         <div className="mt-5 rounded-xl border border-red-400/20 bg-red-500/10 p-4 text-sm text-red-200">
@@ -796,7 +1104,17 @@ function StatisticsPanel({
     <div className="min-h-[270px] min-w-0 overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.055] to-white/[0.025] p-5">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-zinc-100">
-          📊 Statistics
+          <span className="flex items-center gap-2">
+            <Image
+              src="/bloomy/statistics.png"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-8 shrink-0 object-contain"
+            />
+
+            Statistics
+          </span>
         </h2>
 
         <Link
@@ -809,31 +1127,37 @@ function StatisticsPanel({
 
       <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Stat
-          icon="🔥"
-          value={statistics.currentStreak.toLocaleString()}
+          icon="/bloomy/energy.png"
+          value={
+            statistics.currentStreak.toLocaleString()
+          }
           label="Current streak"
           description="days"
           color="text-orange-400"
         />
 
         <Stat
-          icon="⭐"
-          value={statistics.xp.toLocaleString()}
+          icon="/bloomy/star.png"
+          value={
+            statistics.xp.toLocaleString()
+          }
           label="Current XP"
           description="earned"
           color="text-amber-300"
         />
 
         <Stat
-          icon="🏆"
-          value={statistics.level.toLocaleString()}
+          icon="/bloomy/prize.png"
+          value={
+            statistics.level.toLocaleString()
+          }
           label="Current level"
           description="keep growing"
           color="text-amber-400"
         />
 
         <Stat
-          icon="🌱"
+          icon="/bloomy/habits.png"
           value={`${Math.round(
             statistics.habitWeeklyRate,
           )}%`}
@@ -845,6 +1169,10 @@ function StatisticsPanel({
     </div>
   );
 }
+
+// =================================
+// STAT
+// =================================
 
 function Stat({
   icon,
@@ -862,11 +1190,17 @@ function Stat({
   return (
     <div className="rounded-xl bg-black/20 p-4">
       <div className="flex items-center gap-3">
-        <span className="text-2xl">
-          {icon}
-        </span>
+        <Image
+          src={icon}
+          alt=""
+          width={40}
+          height={40}
+          className="h-10 w-10 shrink-0 object-contain"
+        />
 
-        <span className={`text-2xl font-semibold ${color}`}>
+        <span
+          className={`text-2xl font-semibold ${color}`}
+        >
           {value}
         </span>
       </div>

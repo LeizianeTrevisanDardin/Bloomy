@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import type { FormEvent } from "react";
@@ -18,20 +19,88 @@ type ConfirmationAction = {
   habit: Habit;
 };
 
+// =================================
+// HABIT ICONS
+// =================================
+
 const iconOptions = [
-  "🌱",
-  "💧",
-  "🏋️",
-  "📚",
-  "🧘",
-  "🚶",
-  "🥗",
-  "💊",
-  "🛏️",
-  "🧹",
-  "💻",
-  "💰",
+  {
+    value: "🌱",
+    src: "/bloomy/plant.png",
+    label: "Plant",
+  },
+  {
+    value: "💧",
+    src: "/bloomy/water.png",
+    label: "Water",
+  },
+  {
+    value: "🏋️",
+    src: "/bloomy/exercise.png",
+    label: "Workout",
+  },
+  {
+    value: "📚",
+    src: "/bloomy/book.png",
+    label: "Reading",
+  },
+  {
+    value: "🧘",
+    src: "/bloomy/meditate.png",
+    label: "Meditation",
+  },
+  {
+    value: "🚶",
+    src: "/bloomy/walk.png",
+    label: "Walking",
+  },
+  {
+    value: "🥗",
+    src: "/bloomy/salad.png",
+    label: "Healthy food",
+  },
+  {
+    value: "💊",
+    src: "/bloomy/pill.png",
+    label: "Medicine",
+  },
+  {
+    value: "🛏️",
+    src: "/bloomy/bed.png",
+    label: "Sleep",
+  },
+  {
+    value: "🧹",
+    src: "/bloomy/broom.png",
+    label: "Cleaning",
+  },
+  {
+    value: "💻",
+    src: "/bloomy/pc.png",
+    label: "Computer",
+  },
+  {
+    value: "💰",
+    src: "/bloomy/money.png",
+    label: "Money",
+  },
 ];
+
+function getHabitIconSrc(
+  icon: string,
+) {
+  return (
+    iconOptions.find(
+      (option) =>
+        option.value === icon,
+    )?.src ??
+    "/bloomy/plant.png"
+  );
+}
+
+// =================================
+// PAGE
+// =================================
 
 export default function HabitsPage() {
   // =================================
@@ -317,8 +386,18 @@ export default function HabitsPage() {
               Daily progress
             </p>
 
-            <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">
-              🌱 Manage Habits
+            <h1 className="mt-2 flex items-center gap-3 text-3xl font-semibold sm:text-4xl">
+              <Image
+                src="/bloomy/habits.png"
+                alt=""
+                width={40}
+                height={40}
+                className="h-10 w-10 shrink-0 object-contain"
+              />
+
+              <span>
+                Manage Habits
+              </span>
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
@@ -334,8 +413,6 @@ export default function HabitsPage() {
           {/* HEADER ACTIONS */}
 
           <div className="flex flex-col gap-2 sm:flex-row">
-            {/* ARCHIVED */}
-
             <button
               type="button"
               onClick={() => {
@@ -346,6 +423,7 @@ export default function HabitsPage() {
                 h-11
                 items-center
                 justify-center
+                gap-2
                 rounded-xl
                 border
                 border-amber-400/20
@@ -358,14 +436,21 @@ export default function HabitsPage() {
                 hover:bg-amber-500/10
               "
             >
-              📦 Archived
+              <Image
+                src="/bloomy/archive.png"
+                alt=""
+                width={26}
+                height={26}
+                className="h-[30px] w-[30px] shrink-0 object-contain"
+              />
 
-              {archivedHabits.length >
-                0 && (
-                <span className="ml-2 rounded-full bg-amber-400/10 px-2 py-0.5 text-xs">
-                  {
-                    archivedHabits.length
-                  }
+              <span>
+                Archived
+              </span>
+
+              {archivedHabits.length > 0 && (
+                <span className="ml-1 rounded-full bg-amber-400/10 px-2 py-0.5 text-xs">
+                  {archivedHabits.length}
                 </span>
               )}
             </button>
@@ -481,8 +566,14 @@ export default function HabitsPage() {
             /* EMPTY */
 
             <div className="rounded-2xl border border-dashed border-white/10 px-5 py-14 text-center">
-              <div className="text-4xl">
-                🌿
+              <div className="flex justify-center">
+                <Image
+                  src="/bloomy/plant.png"
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-contain"
+                />
               </div>
 
               <h3 className="mt-4 font-medium">
@@ -496,15 +587,24 @@ export default function HabitsPage() {
               </p>
 
               <button
-                type="button"
-                onClick={() => {
-                  void openArchived();
-                }}
-                className="mt-4 text-sm text-amber-300 transition hover:text-amber-200"
-              >
-                📦 View archived
-                habits
-              </button>
+                  type="button"
+                  onClick={() => {
+                    void openArchived();
+                  }}
+                  className="mt-4 inline-flex items-center justify-center gap-2 text-sm text-amber-300 transition hover:text-amber-200"
+                >
+                  <Image
+                    src="/bloomy/archive.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    className="h-6 w-6 shrink-0 object-contain"
+                  />
+
+                  <span>
+                    View archived habits
+                  </span>
+                </button>
             </div>
           ) : (
             /* HABITS */
@@ -522,9 +622,7 @@ export default function HabitsPage() {
 
                   return (
                     <article
-                      key={
-                        habit.id
-                      }
+                      key={habit.id}
                       className="rounded-2xl border border-white/10 bg-black/20 p-4 transition hover:border-white/15 hover:bg-white/[0.035] sm:p-5"
                     >
                       {/* TOP */}
@@ -532,10 +630,16 @@ export default function HabitsPage() {
                       <div className="flex items-start gap-3">
                         {/* ICON */}
 
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-2xl">
-                          {
-                            habit.icon
-                          }
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                          <Image
+                            src={getHabitIconSrc(
+                              habit.icon,
+                            )}
+                            alt=""
+                            width={40}
+                            height={40}
+                            className="h-10 w-10 object-contain"
+                          />
                         </div>
 
                         {/* INFO */}
@@ -574,7 +678,15 @@ export default function HabitsPage() {
                               × weekly
                             </span>
 
-                            <span className="rounded-lg bg-white/5 px-2 py-1">
+                            <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                              <Image
+                                src="/bloomy/star.png"
+                                alt=""
+                                width={16}
+                                height={16}
+                                className="h-6 w-6 object-contain"
+                              />
+
                               +
                               {
                                 habit.xp_reward
@@ -582,7 +694,15 @@ export default function HabitsPage() {
                               XP
                             </span>
 
-                            <span className="rounded-lg bg-white/5 px-2 py-1">
+                            <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                              <Image
+                                src="/bloomy/coin.png"
+                                alt=""
+                                width={16}
+                                height={16}
+                                className="h-4 w-4 object-contain"
+                              />
+
                               +
                               {
                                 habit.coin_reward
@@ -595,74 +715,100 @@ export default function HabitsPage() {
 
                       {/* ACTIONS */}
 
-                      <div className="mt-5 grid grid-cols-3 gap-2">
-                        {/* EDIT */}
+                        <div className="mt-5 grid grid-cols-3 gap-2">
+                          {/* EDIT */}
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openEditModal(
-                              habit,
-                            )
-                          }
-                          disabled={
-                            isBusy
-                          }
-                          className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          ✏️ Edit
-                        </button>
-
-                        {/* ARCHIVE */}
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setConfirmation(
-                              {
-                                type:
-                                  "archive",
-
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openEditModal(
                                 habit,
-                              },
-                            )
-                          }
-                          disabled={
-                            isBusy
-                          }
-                          className="rounded-xl border border-amber-400/15 bg-amber-500/5 px-3 py-2 text-xs text-amber-200 transition hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {archivingHabitId ===
-                          habit.id
-                            ? "Archiving..."
-                            : "📦 Archive"}
-                        </button>
+                              )
+                            }
+                            disabled={isBusy}
+                            className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Image
+                              src="/bloomy/edit.png"
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="h-6 w-6 shrink-0 object-contain"
+                            />
 
-                        {/* DELETE */}
+                            <span>
+                              Edit
+                            </span>
+                          </button>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setConfirmation(
-                              {
-                                type:
-                                  "delete",
+                          {/* ARCHIVE */}
 
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setConfirmation({
+                                type: "archive",
                                 habit,
-                              },
-                            )
-                          }
-                          disabled={
-                            isBusy
-                          }
-                          className="rounded-xl border border-red-400/15 bg-red-500/5 px-3 py-2 text-xs text-red-200 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {deletingHabitId ===
-                          habit.id
-                            ? "Deleting..."
-                            : "🗑️ Delete"}
-                        </button>
-                      </div>
+                              })
+                            }
+                            disabled={isBusy}
+                            className="flex items-center justify-center gap-2 rounded-xl border border-amber-400/15 bg-amber-500/5 px-3 py-2.5 text-xs text-amber-200 transition hover:bg-amber-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {archivingHabitId === habit.id ? (
+                              <span>
+                                Archiving...
+                              </span>
+                            ) : (
+                              <>
+                                <Image
+                                  src="/bloomy/archive.png"
+                                  alt=""
+                                  width={24}
+                                  height={24}
+                                  className="h-6 w-6 shrink-0 object-contain"
+                                />
+
+                                <span>
+                                  Archive
+                                </span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* DELETE */}
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setConfirmation({
+                                type: "delete",
+                                habit,
+                              })
+                            }
+                            disabled={isBusy}
+                            className="flex items-center justify-center gap-2 rounded-xl border border-red-400/15 bg-red-500/5 px-3 py-2.5 text-xs text-red-200 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {deletingHabitId === habit.id ? (
+                              <span>
+                                Deleting...
+                              </span>
+                            ) : (
+                              <>
+                                <Image
+                                  src="/bloomy/delete.png"
+                                  alt=""
+                                  width={24}
+                                  height={24}
+                                  className="h-6 w-6 shrink-0 object-contain"
+                                />
+
+                                <span>
+                                  Delete
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                     </article>
                   );
                 },
@@ -678,43 +824,21 @@ export default function HabitsPage() {
 
       {showArchived && (
         <div className="fixed inset-0 z-[240] flex items-center justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
-          {/* BACKDROP */}
-
           <button
             type="button"
             aria-label="Close archived habits"
             onClick={() => {
-              setShowArchived(
-                false,
-              );
+              setShowArchived(false);
             }}
             className="absolute inset-0"
           />
-
-          {/* MODAL */}
 
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="archived-habits-title"
-            className="
-              relative
-              z-10
-              max-h-[85vh]
-              w-full
-              max-w-2xl
-              overflow-y-auto
-              rounded-3xl
-              border
-              border-white/10
-              bg-[#18181d]
-              p-5
-              shadow-2xl
-              sm:p-6
-            "
+            className="relative z-10 max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-white/10 bg-[#18181d] p-5 shadow-2xl sm:p-6"
           >
-            {/* HEADER */}
-
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.18em] text-amber-300">
@@ -723,9 +847,18 @@ export default function HabitsPage() {
 
                 <h2
                   id="archived-habits-title"
-                  className="mt-1 text-2xl font-semibold text-white"
+                  className="mt-1 flex items-center text-2xl font-semibold text-white"
                 >
-                  📦 Archived Habits
+                  <Image
+                    src="/bloomy/archive.png"
+                    alt=""
+                    height={30}
+                    width={30}
+                     className="mr-2 h-[30px] w-[30px] object-contain"
+
+                  />
+                  
+                  <span> Archived Habits </span>
                 </h2>
 
                 <p className="mt-2 text-sm text-zinc-500">
@@ -738,9 +871,7 @@ export default function HabitsPage() {
               <button
                 type="button"
                 onClick={() => {
-                  setShowArchived(
-                    false,
-                  );
+                  setShowArchived(false);
                 }}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition hover:bg-white/10 hover:text-white"
                 aria-label="Close"
@@ -749,16 +880,12 @@ export default function HabitsPage() {
               </button>
             </div>
 
-            {/* LOADING */}
-
             {loadingArchived && (
               <div className="mt-6 space-y-3">
                 {[0, 1, 2].map(
                   (item) => (
                     <div
-                      key={
-                        item
-                      }
+                      key={item}
                       className="h-24 animate-pulse rounded-2xl bg-white/5"
                     />
                   ),
@@ -766,19 +893,22 @@ export default function HabitsPage() {
               </div>
             )}
 
-            {/* EMPTY */}
-
             {!loadingArchived &&
               archivedHabits.length ===
                 0 && (
                 <div className="mt-6 rounded-2xl border border-dashed border-white/10 px-5 py-14 text-center">
-                  <div className="text-4xl">
-                    📦
+                  <div className="flex justify-center">
+                    <Image
+                      src="/bloomy/archive.png"
+                      alt=""
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 object-contain"
+                    />
                   </div>
 
                   <h3 className="mt-4 font-medium text-white">
-                    No archived
-                    habits
+                    No archived habits
                   </h3>
 
                   <p className="mt-2 text-sm text-zinc-500">
@@ -789,16 +919,12 @@ export default function HabitsPage() {
                 </div>
               )}
 
-            {/* ARCHIVED HABITS */}
-
             {!loadingArchived &&
               archivedHabits.length >
                 0 && (
                 <div className="mt-6 space-y-3">
                   {archivedHabits.map(
-                    (
-                      habit,
-                    ) => {
+                    (habit) => {
                       const restoring =
                         restoringHabitId ===
                         habit.id;
@@ -813,18 +939,20 @@ export default function HabitsPage() {
 
                       return (
                         <article
-                          key={
-                            habit.id
-                          }
+                          key={habit.id}
                           className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-5"
                         >
-                          {/* INFO */}
-
                           <div className="flex items-start gap-3">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-2xl">
-                              {
-                                habit.icon
-                              }
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                              <Image
+                                src={getHabitIconSrc(
+                                  habit.icon,
+                                )}
+                                alt=""
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 object-contain"
+                              />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -853,7 +981,15 @@ export default function HabitsPage() {
                                   × weekly
                                 </span>
 
-                                <span className="rounded-lg bg-white/5 px-2 py-1">
+                                <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                                  <Image
+                                    src="/bloomy/star.png"
+                                    alt=""
+                                    width={16}
+                                    height={16}
+                                    className="h-4 w-4 object-contain"
+                                  />
+
                                   +
                                   {
                                     habit.xp_reward
@@ -861,7 +997,15 @@ export default function HabitsPage() {
                                   XP
                                 </span>
 
-                                <span className="rounded-lg bg-white/5 px-2 py-1">
+                                <span className="flex items-center gap-1.5 rounded-lg bg-white/5 px-2 py-1">
+                                  <Image
+                                    src="/bloomy/coin.png"
+                                    alt=""
+                                    width={16}
+                                    height={16}
+                                    className="h-4 w-4 object-contain"
+                                  />
+
                                   +
                                   {
                                     habit.coin_reward
@@ -872,25 +1016,16 @@ export default function HabitsPage() {
                             </div>
                           </div>
 
-                          {/* ACTIONS */}
-
                           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
-                            {/* DELETE */}
-
                             <button
                               type="button"
-                              disabled={
-                                busy
-                              }
+                              disabled={busy}
                               onClick={() => {
-                                setConfirmation(
-                                  {
-                                    type:
-                                      "delete",
-
-                                    habit,
-                                  },
-                                );
+                                setConfirmation({
+                                  type:
+                                    "delete",
+                                  habit,
+                                });
                               }}
                               className="rounded-xl border border-red-400/15 bg-red-500/5 px-4 py-2.5 text-sm text-red-200 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
                             >
@@ -899,13 +1034,9 @@ export default function HabitsPage() {
                                 : "🗑️ Delete permanently"}
                             </button>
 
-                            {/* RESTORE */}
-
                             <button
                               type="button"
-                              disabled={
-                                busy
-                              }
+                              disabled={busy}
                               onClick={() => {
                                 void handleRestore(
                                   habit,
@@ -935,8 +1066,6 @@ export default function HabitsPage() {
       {editingHabit &&
         form && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur-sm">
-            {/* BACKDROP */}
-
             <button
               type="button"
               aria-label="Close edit modal"
@@ -946,11 +1075,7 @@ export default function HabitsPage() {
               className="absolute inset-0"
             />
 
-            {/* MODAL */}
-
             <div className="relative z-10 w-full max-w-lg rounded-3xl border border-white/10 bg-[#18181d] p-5 shadow-2xl sm:p-6">
-              {/* HEADER */}
-
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.18em] text-purple-300">
@@ -976,12 +1101,8 @@ export default function HabitsPage() {
                 </button>
               </div>
 
-              {/* FORM */}
-
               <form
-                onSubmit={(
-                  event,
-                ) => {
+                onSubmit={(event) => {
                   void handleUpdate(
                     event,
                   );
@@ -1011,9 +1132,7 @@ export default function HabitsPage() {
                             .value,
                       });
                     }}
-                    maxLength={
-                      80
-                    }
+                    maxLength={80}
                     className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-purple-400/40"
                   />
                 </label>
@@ -1042,9 +1161,7 @@ export default function HabitsPage() {
                       });
                     }}
                     rows={3}
-                    maxLength={
-                      240
-                    }
+                    maxLength={240}
                     className="mt-2 w-full resize-none rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-600 focus:border-purple-400/40"
                   />
                 </label>
@@ -1059,32 +1176,45 @@ export default function HabitsPage() {
                   <div className="mt-2 grid grid-cols-6 gap-2">
                     {iconOptions.map(
                       (
-                        icon,
+                        option,
                       ) => (
                         <button
                           key={
-                            icon
+                            option.value
                           }
                           type="button"
+                          aria-label={
+                            option.label
+                          }
+                          title={
+                            option.label
+                          }
                           onClick={() => {
-                            setForm(
-                              {
-                                ...form,
+                            setForm({
+                              ...form,
 
-                                icon,
-                              },
-                            );
+                              icon:
+                                option.value,
+                            });
                           }}
-                          className={`flex aspect-square items-center justify-center rounded-xl border text-xl transition ${
+                          className={`flex aspect-square items-center justify-center rounded-xl border transition ${
                             form.icon ===
-                            icon
+                            option.value
                               ? "border-purple-400/40 bg-purple-500/15"
                               : "border-white/10 bg-black/20 hover:bg-white/5"
                           }`}
                         >
-                          {
-                            icon
-                          }
+                          <Image
+                            src={
+                              option.src
+                            }
+                            alt={
+                              option.label
+                            }
+                            width={40}
+                            height={40}
+                            className="h-10 w-10 object-contain"
+                          />
                         </button>
                       ),
                     )}
@@ -1106,16 +1236,14 @@ export default function HabitsPage() {
                       onChange={(
                         event,
                       ) => {
-                        setForm(
-                          {
-                            ...form,
+                        setForm({
+                          ...form,
 
-                            frequency:
-                              event
-                                .target
-                                .value,
-                          },
-                        );
+                          frequency:
+                            event
+                              .target
+                              .value,
+                        });
                       }}
                       className="mt-2 w-full rounded-xl border border-white/10 bg-[#111115] px-4 py-3 text-sm outline-none focus:border-purple-400/40"
                     >
@@ -1135,8 +1263,7 @@ export default function HabitsPage() {
 
                   <label className="block">
                     <span className="text-sm text-zinc-300">
-                      Target per
-                      week
+                      Target per week
                     </span>
 
                     <input
@@ -1149,18 +1276,16 @@ export default function HabitsPage() {
                       onChange={(
                         event,
                       ) => {
-                        setForm(
-                          {
-                            ...form,
+                        setForm({
+                          ...form,
 
-                            targetPerWeek:
-                              Number(
-                                event
-                                  .target
-                                  .value,
-                              ),
-                          },
-                        );
+                          targetPerWeek:
+                            Number(
+                              event
+                                .target
+                                .value,
+                            ),
+                        });
                       }}
                       className="mt-2 w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none focus:border-purple-400/40"
                     />
@@ -1269,8 +1394,6 @@ function ConfirmationModal({
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      {/* BACKDROP */}
-
       <button
         type="button"
         aria-label="Close confirmation"
@@ -1283,11 +1406,7 @@ function ConfirmationModal({
         className="absolute inset-0"
       />
 
-      {/* MODAL */}
-
       <div className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-[#18181d] shadow-2xl shadow-black/50">
-        {/* TOP COLOR */}
-
         <div
           className={`h-1 w-full ${
             isDelete
@@ -1297,8 +1416,6 @@ function ConfirmationModal({
         />
 
         <div className="p-6 sm:p-7">
-          {/* ICON */}
-
           <div
             className={`flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl ${
               isDelete
@@ -1310,8 +1427,6 @@ function ConfirmationModal({
               ? "🗑️"
               : "📦"}
           </div>
-
-          {/* LABEL */}
 
           <p
             className={`mt-5 text-xs font-medium uppercase tracking-[0.18em] ${
@@ -1325,15 +1440,11 @@ function ConfirmationModal({
               : "Move to archive"}
           </p>
 
-          {/* TITLE */}
-
           <h2 className="mt-2 text-2xl font-semibold text-white">
             {isDelete
               ? "Delete habit?"
               : "Archive habit?"}
           </h2>
-
-          {/* DESCRIPTION */}
 
           <p className="mt-3 text-sm leading-6 text-zinc-400">
             {isDelete ? (
@@ -1347,11 +1458,9 @@ function ConfirmationModal({
                   }
                   ”
                 </span>{" "}
-                will be
-                permanently
-                removed. This
-                action cannot be
-                undone.
+                will be permanently
+                removed. This action
+                cannot be undone.
               </>
             ) : (
               <>
@@ -1368,13 +1477,10 @@ function ConfirmationModal({
                 active list. You
                 will be able to
                 restore it from
-                the archive
-                later.
+                the archive later.
               </>
             )}
           </p>
-
-          {/* ACTIONS */}
 
           <div className="mt-7 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button
