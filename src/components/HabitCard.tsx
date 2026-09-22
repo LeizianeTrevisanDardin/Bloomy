@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import {
   useState,
 } from "react";
@@ -25,19 +27,79 @@ type HabitsPanelProps = {
 };
 
 const iconOptions = [
-  "🌱",
-  "💧",
-  "🏋️",
-  "📚",
-  "🧘",
-  "🚶",
-  "🥗",
-  "💊",
-  "🛏️",
-  "🧹",
-  "💻",
-  "💰",
+  {
+    value: "🌱",
+    src: "/bloomy/plant.png",
+    label: "Plant",
+  },
+  {
+    value: "💧",
+    src: "/bloomy/water.png",
+    label: "Water",
+  },
+  {
+    value: "🏋️",
+    src: "/bloomy/exercise.png",
+    label: "Workout",
+  },
+  {
+    value: "📚",
+    src: "/bloomy/book.png",
+    label: "Reading",
+  },
+  {
+    value: "🧘",
+    src: "/bloomy/meditate.png",
+    label: "Meditation",
+  },
+  {
+    value: "🚶",
+    src: "/bloomy/walk.png",
+    label: "Walking",
+  },
+  {
+    value: "🥗",
+    src: "/bloomy/salad.png",
+    label: "Healthy food",
+  },
+  {
+    value: "💊",
+    src: "/bloomy/pill.png",
+    label: "Medicine",
+  },
+  {
+    value: "🛏️",
+    src: "/bloomy/bed.png",
+    label: "Sleep",
+  },
+  {
+    value: "🧹",
+    src: "/bloomy/broom.png",
+    label: "Cleaning",
+  },
+  {
+    value: "💻",
+    src: "/bloomy/pc.png",
+    label: "Computer",
+  },
+  {
+    value: "💰",
+    src: "/bloomy/money.png",
+    label: "Money",
+  },
 ];
+
+function getHabitIconSrc(
+  icon: string,
+) {
+  return (
+    iconOptions.find(
+      (option) =>
+        option.value === icon,
+    )?.src ??
+    "/bloomy/plant.png"
+  );
+}
 
 const difficultyOptions: {
   value: HabitDifficulty;
@@ -361,8 +423,18 @@ export default function HabitsPanel({
               Daily progress
             </p>
 
-            <h2 className="mt-1 text-xl font-semibold text-white">
-              🌱 Habits
+            <h2 className="mt-1 flex items-center gap-2 text-xl font-semibold text-white">
+              <Image
+                src="/bloomy/habits.png"
+                alt=""
+                width={36}
+                height={36}
+                className="h-10 w-10 shrink-0 object-contain"
+              />
+
+              <span>
+                Habits
+              </span>
             </h2>
           </div>
 
@@ -375,7 +447,11 @@ export default function HabitsPanel({
                 void openArchivedModal();
               }}
               className="
+                flex
                 flex-1
+                items-center
+                justify-center
+                gap-2
                 rounded-xl
                 border
                 border-white/10
@@ -391,7 +467,17 @@ export default function HabitsPanel({
                 sm:flex-none
               "
             >
-              🗃️ Archived
+              <span className="inline-flex items-center gap-2">
+                <Image
+                  src="/bloomy/archive.png"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="h-8 w-8 shrink-0 object-contain"
+                />
+
+                Archived
+              </span>
             </button>
 
             {/* ADD HABIT */}
@@ -483,9 +569,15 @@ export default function HabitsPanel({
           habits.length ===
             0 && (
             <div className="rounded-2xl border border-dashed border-white/10 bg-black/10 px-4 py-8 text-center">
-              <span className="text-3xl">
-                🌱
-              </span>
+              <div className="flex justify-center">
+                <Image
+                  src="/bloomy/plant.png"
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 object-contain"
+                />
+              </div>
 
               <p className="mt-3 text-sm font-medium text-zinc-200">
                 No habits yet
@@ -550,10 +642,16 @@ export default function HabitsPanel({
                         <div className="flex min-w-0 items-center gap-3">
                           {/* ICON */}
 
-                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl">
-                            {
-                              habit.icon
-                            }
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                            <Image
+                              src={getHabitIconSrc(
+                                habit.icon,
+                              )}
+                              alt=""
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 object-contain"
+                            />
                           </div>
 
                           {/* INFORMATION */}
@@ -590,24 +688,32 @@ export default function HabitsPanel({
                                 •
                               </span>
 
-                              <span>
-                                +
-                                {
-                                  habit.xp_reward
-                                }{" "}
-                                XP
+                              <span className="inline-flex items-center gap-1">
+                                <Image
+                                  src="/bloomy/star.png"
+                                  alt=""
+                                  width={18}
+                                  height={18}
+                                  className="h-[22px] w-[22px] shrink-0 object-contain"
+                                />
+
+                                +{habit.xp_reward} XP
                               </span>
 
                               <span>
                                 •
                               </span>
 
-                              <span>
-                                +
-                                {
-                                  habit.coin_reward
-                                }{" "}
-                                coins
+                              <span className="inline-flex items-center gap-1">
+                                <Image
+                                  src="/bloomy/coin.png"
+                                  alt=""
+                                  width={18}
+                                  height={18}
+                                  className="h-[22px] w-[22px] shrink-0 object-contain"
+                                />
+
+                                +{habit.coin_reward} coins
                               </span>
                             </div>
                           </div>
@@ -767,9 +873,19 @@ export default function HabitsPanel({
 
                 <h2
                   id="archived-habits-title"
-                  className="mt-1 text-2xl font-semibold text-white"
+                  className="mt-1 flex items-center gap-2 text-2xl font-semibold text-white"
                 >
-                  🗃️ Archived habits
+                  <Image
+                    src="/bloomy/archive.png"
+                    alt=""
+                    width={36}
+                    height={36}
+                    className="h-9 w-9 shrink-0 object-contain"
+                  />
+
+                  <span>
+                    Archived habits
+                  </span>
                 </h2>
 
                 <p className="mt-1 text-sm text-zinc-500">
@@ -817,9 +933,15 @@ export default function HabitsPanel({
               archivedHabits.length ===
                 0 && (
                 <div className="mt-6 rounded-2xl border border-dashed border-white/10 bg-black/10 px-4 py-10 text-center">
-                  <span className="text-3xl">
-                    🌱
-                  </span>
+                  <div className="flex justify-center">
+                    <Image
+                      src="/bloomy/archive.png"
+                      alt=""
+                      width={48}
+                      height={48}
+                      className="h-12 w-12 object-contain"
+                    />
+                  </div>
 
                   <p className="mt-3 text-sm font-medium text-zinc-200">
                     Nothing
@@ -864,10 +986,16 @@ export default function HabitsPanel({
                           className="rounded-2xl border border-white/10 bg-black/10 p-4"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-xl">
-                              {
-                                habit.icon
-                              }
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                              <Image
+                                src={getHabitIconSrc(
+                                  habit.icon,
+                                )}
+                                alt=""
+                                width={36}
+                                height={36}
+                                className="h-9 w-9 object-contain"
+                              />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -920,6 +1048,10 @@ export default function HabitsPanel({
                                 );
                               }}
                               className="
+                                flex
+                                items-center
+                                justify-center
+                                gap-2
                                 rounded-xl
                                 border
                                 border-red-400/20
@@ -934,8 +1066,23 @@ export default function HabitsPanel({
                                 disabled:opacity-50
                               "
                             >
-                              Delete
-                              permanently
+                              {deleting ? (
+                                "Deleting..."
+                              ) : (
+                                <>
+                                  <Image
+                                    src="/bloomy/delete.png"
+                                    alt=""
+                                    width={24}
+                                    height={24}
+                                    className="h-6 w-6 shrink-0 object-contain"
+                                  />
+
+                                  <span>
+                                    Delete permanently
+                                  </span>
+                                </>
+                              )}
                             </button>
 
                             <button
@@ -1003,8 +1150,14 @@ export default function HabitsPanel({
           />
 
           <div className="relative z-10 w-full max-w-md rounded-3xl border border-red-400/20 bg-[#17151d] p-6 shadow-2xl">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-400/10 text-2xl">
-              🗑️
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-400/10">
+              <Image
+                src="/bloomy/delete.png"
+                alt=""
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+              />
             </div>
 
             <h2 className="mt-4 text-xl font-semibold text-white">
@@ -1224,10 +1377,10 @@ export default function HabitsPanel({
 
                 <div className="mt-2 grid grid-cols-6 gap-2">
                   {iconOptions.map(
-                    (icon) => (
+                    (option) => (
                       <button
                         key={
-                          icon
+                          option.value
                         }
                         type="button"
                         onClick={() => {
@@ -1237,21 +1390,33 @@ export default function HabitsPanel({
                             ) => ({
                               ...current,
 
-                              icon,
+                              icon:
+                                option.value,
                             }),
                           );
                         }}
-                        className={`flex aspect-square items-center justify-center rounded-xl border text-xl transition ${
+                        className={`flex aspect-square items-center justify-center rounded-xl border transition ${
                           form.icon ===
-                          icon
+                          option.value
                             ? "border-purple-400/50 bg-purple-400/15"
                             : "border-white/10 bg-black/20 hover:bg-white/5"
                         }`}
-                        aria-label={`Select ${icon}`}
-                      >
-                        {
-                          icon
+                        aria-label={`Select ${option.label}`}
+                        title={
+                          option.label
                         }
+                      >
+                        <Image
+                          src={
+                            option.src
+                          }
+                          alt={
+                            option.label
+                          }
+                          width={44}
+                          height={44}
+                          className="h-11 w-11 object-contain"
+                        />
                       </button>
                     ),
                   )}
