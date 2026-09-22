@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import Image from "next/image";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -597,9 +599,19 @@ export default function ShopPage() {
               Make yourself at home
             </p>
 
-            <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">
-              Bloomy Shop
-            </h1>
+            <div className="mt-2 flex items-center gap-4">
+                         <Image
+                            src="/bloomy/shop.png"
+                            alt=""
+                            width={58}
+                            height={58}
+                            className="h-[58px] w-[58px] object-contain"
+                          />
+            
+                          <h1 className="text-4xl font-semibold sm:text-5xl">
+                            Shop
+                          </h1>           
+                      </div>
 
             <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-400">
               Turn your daily
@@ -969,9 +981,15 @@ export default function ShopPage() {
               event.stopPropagation();
             }}
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/15 bg-amber-300/10 text-xl">
-              🪙
-            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/15 bg-amber-300/10">
+            <Image
+              src="/bloomy/coins.png"
+              alt="Coins"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain"
+            />
+          </div>
 
             <h2
               id="sell-item-title"

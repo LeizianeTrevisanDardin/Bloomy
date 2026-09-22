@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import Image from "next/image";
 
 import {
   useGoals,
@@ -34,6 +35,21 @@ const iconOptions = [
   "❤️",
   "⭐",
 ];
+
+const goalIconMap: Record<string, string> = {
+  "🎯": "/bloomy/target.png",
+  "💼": "/bloomy/career.png",
+  "💰": "/bloomy/money.png",
+  "📚": "/bloomy/book.png",
+  "🏋️": "/bloomy/exercise.png",
+  "🏠": "/bloomy/home.png",
+  "✈️": "/bloomy/travel.png",
+  "💻": "/bloomy/computer.png",
+  "🌱": "/bloomy/growth.png",
+  "🏆": "/bloomy/trophy.png",
+  "❤️": "/bloomy/heart.png",
+  "⭐": "/bloomy/star.png",
+};
 
 const goalRewards: Record<GoalDifficulty, string> = {
   easy: "100 XP · 20 coins",
@@ -173,9 +189,20 @@ export default function GoalsPage() {
             <p className="mt-7 text-xs font-medium uppercase tracking-[0.2em] text-purple-300">
               Long-term progress
             </p>
-            <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">
-              🎯 Manage Goals
-            </h1>
+            <div className="mt-2 flex items-center gap-4">
+              <Image
+                src="/bloomy/goals.png"
+                alt=""
+                width={58}
+                height={58}
+                className="h-[58px] w-[58px] object-contain"
+              />
+                 
+               <h1 className="text-4xl font-semibold sm:text-5xl">
+                  Manage Goals
+               </h1>           
+            </div>
+
             <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-400">
               Update your goal details, review progress, archive
               goals for later, or permanently remove them.
@@ -239,7 +266,13 @@ export default function GoalsPage() {
             </div>
           ) : goals.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-white/10 px-5 py-14 text-center">
-              <div className="text-4xl">🎯</div>
+              <Image
+                src="/bloomy/goals.png"
+                alt="Goals"
+                width={60}
+                height={60}
+                className="mx-auto h-[60px] w-[60px] object-contain"
+              />
               <h3 className="mt-4 font-medium">No goals yet</h3>
               <p className="mt-2 text-sm text-zinc-500">
                 Create a goal from your dashboard to begin.
@@ -264,8 +297,14 @@ export default function GoalsPage() {
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-2xl">
-                        {goal.icon}
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                        <Image
+                          src={goalIconMap[goal.icon] ?? "/bloomy/goals.png"}
+                          alt={goal.title}
+                          width={36}
+                          height={36}
+                          className="h-9 w-9 object-contain"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
@@ -282,22 +321,41 @@ export default function GoalsPage() {
                           {goal.description || "No description added."}
                         </p>
 
-                        <div className="mt-3 flex flex-wrap gap-2 text-xs text-zinc-400">
-                          <span className="rounded-lg bg-white/5 px-2 py-1 capitalize">
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                          <span className="inline-flex h-8 items-center rounded-lg bg-white/5 px-3 capitalize">
                             {goal.category}
                           </span>
-                          <span className="rounded-lg bg-white/5 px-2 py-1 capitalize">
+
+                          <span className="inline-flex h-8 items-center rounded-lg bg-white/5 px-3 capitalize">
                             {goal.difficulty}
                           </span>
+
                           {goal.deadline && (
-                            <span className="rounded-lg bg-white/5 px-2 py-1">
-                              📅 {formatDeadline(goal.deadline)}
+                            <span className="inline-flex h-8 items-center gap-2 rounded-lg bg-white/5 px-3">
+                              <Image
+                                src="/bloomy/calendar.png"
+                                alt=""
+                                width={18}
+                                height={18}
+                                className="h-[18px] w-[18px] shrink-0 object-contain"
+                              />
+
+                              {formatDeadline(goal.deadline)}
                             </span>
                           )}
-                          <span className="rounded-lg bg-white/5 px-2 py-1">
+
+                          <span className="inline-flex h-8 items-center rounded-lg bg-white/5 px-3">
                             +{goal.xp_reward} XP
                           </span>
-                          <span className="rounded-lg bg-white/5 px-2 py-1">
+
+                          <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-white/5 px-3">
+                            <Image
+                              src="/bloomy/coin.png"
+                              alt=""
+                              width={16}
+                              height={16}
+                              className="h-6 w-6 object-contain"
+                            />
                             +{goal.coin_reward} coins
                           </span>
                         </div>
@@ -331,33 +389,64 @@ export default function GoalsPage() {
                         type="button"
                         onClick={() => openEditModal(goal)}
                         disabled={isBusy}
-                        className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-zinc-300 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
                       >
-                        ✏️ Edit
+                        <Image
+                          src="/bloomy/edit.png"
+                          alt=""
+                          width={28}
+                          height={28}
+                          className="h-7 w-7 object-contain"
+                        />
+                        Edit
                       </button>
+
                       <button
                         type="button"
                         onClick={() =>
                           setConfirmation({ type: "archive", goal })
                         }
                         disabled={isBusy}
-                        className="rounded-xl border border-amber-400/15 bg-amber-500/5 px-3 py-2 text-xs text-amber-200 transition hover:bg-amber-500/10 disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-400/15 bg-amber-500/5 px-3 py-2.5 text-xs text-amber-200 transition hover:bg-amber-500/10 disabled:opacity-50"
                       >
-                        {archivingGoalId === goal.id
-                          ? "Archiving..."
-                          : "📦 Archive"}
+                        {archivingGoalId === goal.id ? (
+                          "Archiving..."
+                        ) : (
+                          <>
+                            <Image
+                              src="/bloomy/archive.png"
+                              alt=""
+                              width={28}
+                              height={28}
+                              className="h-7 w-7 object-contain"
+                            />
+                            Archive
+                          </>
+                        )}
                       </button>
+
                       <button
                         type="button"
                         onClick={() =>
                           setConfirmation({ type: "delete", goal })
                         }
                         disabled={isBusy}
-                        className="rounded-xl border border-red-400/15 bg-red-500/5 px-3 py-2 text-xs text-red-200 transition hover:bg-red-500/10 disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-400/15 bg-red-500/5 px-3 py-2.5 text-xs text-red-200 transition hover:bg-red-500/10 disabled:opacity-50"
                       >
-                        {deletingGoalId === goal.id
-                          ? "Deleting..."
-                          : "🗑️ Delete"}
+                        {deletingGoalId === goal.id ? (
+                          "Deleting..."
+                        ) : (
+                          <>
+                            <Image
+                              src="/bloomy/delete.png"
+                              alt=""
+                              width={28}
+                              height={28}
+                              className="h-7 w-7 object-contain"
+                            />
+                            Delete
+                          </>
+                        )}
                       </button>
                     </div>
                   </article>
@@ -473,13 +562,19 @@ function EditGoalModal({
                   key={icon}
                   type="button"
                   onClick={() => setForm({ ...form, icon })}
-                  className={`flex aspect-square items-center justify-center rounded-xl border text-xl transition ${
+                  className={`flex aspect-square items-center justify-center rounded-xl border p-2 transition ${
                     form.icon === icon
                       ? "border-purple-400/40 bg-purple-500/15"
                       : "border-white/10 bg-black/20 hover:bg-white/5"
                   }`}
                 >
-                  {icon}
+                  <Image
+                    src={goalIconMap[icon] ?? "/bloomy/goals.png"}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 object-contain"
+                  />
                 </button>
               ))}
             </div>
@@ -626,13 +721,23 @@ function ConfirmationModal({
         <div className={`h-1 ${isDelete ? "bg-red-500" : "bg-amber-400"}`} />
         <div className="p-6 sm:p-7">
           <div
-            className={`flex h-14 w-14 items-center justify-center rounded-2xl border text-2xl ${
+            className={`flex h-16 w-16 items-center justify-center rounded-2xl border ${
               isDelete
                 ? "border-red-400/20 bg-red-500/10"
                 : "border-amber-400/20 bg-amber-500/10"
             }`}
           >
-            {isDelete ? "🗑️" : "📦"}
+            <Image
+              src={
+                isDelete
+                  ? "/bloomy/delete.png"
+                  : "/bloomy/archive.png"
+              }
+              alt=""
+              width={38}
+              height={38}
+              className="h-[38px] w-[38px] object-contain"
+            />
           </div>
           <p
             className={`mt-5 text-xs font-medium uppercase tracking-[0.18em] ${
