@@ -983,7 +983,7 @@ export default function ShopPage() {
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-300/15 bg-amber-300/10">
             <Image
-              src="/bloomy/coins.png"
+              src="/bloomy/coin.png"
               alt="Coins"
               width={32}
               height={32}
